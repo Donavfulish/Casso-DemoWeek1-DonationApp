@@ -1,0 +1,66 @@
+@import "tailwindcss";
+:root {
+  /* QR-Donate dark theme with charcoal background and teal accent */
+  --background: #1a202c;
+  --foreground: #f7fafc;
+  --card: #2d3748;
+  --card-foreground: #f7fafc;
+  --popover: #2d3748;
+  --popover-foreground: #f7fafc;
+  --primary: #38b2ac;
+  --primary-foreground: #1a202c;
+  --secondary: #4a5568;
+  --secondary-foreground: #f7fafc;
+  --muted: #4a5568;
+  --muted-foreground: #a0aec0;
+  --accent: #38b2ac;
+  --accent-foreground: #1a202c;
+  --destructive: #e53e3e;
+  --destructive-foreground: #f7fafc;
+  --border: #4a5568;
+  --input: #2d3748;
+  --ring: #38b2ac;
+  --radius: 0.75rem;
+}
+
+.dark {
+  --background: #1a202c;
+  --foreground: #f7fafc;
+  --card: #2d3748;
+  --card-foreground: #f7fafc;
+  --popover: #2d3748;
+  --popover-foreground: #f7fafc;
+  --primary: #38b2ac;
+  --primary-foreground: #1a202c;
+  --secondary: #4a5568;
+  --secondary-foreground: #f7fafc;
+  --muted: #4a5568;
+  --muted-foreground: #a0aec0;
+  --accent: #38b2ac;
+  --accent-foreground: #1a202c;
+  --destructive: #e53e3e;
+  --destructive-foreground: #f7fafc;
+  --border: #4a5568;
+  --input: #2d3748;
+  --ring: #38b2ac;
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
