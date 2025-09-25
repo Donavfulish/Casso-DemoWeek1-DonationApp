@@ -3,47 +3,67 @@ import { Button } from "../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 import { CheckCircle, AlertCircle } from "lucide-react"
-import QRCodeGenerator from "../components/QRCodeGenerator"
 import LiveTransactionFeed from "../components/LiveTransactionFeed"
 import { getGrantToken, getListServices, exchangeToken, checkSession, getQRCode } from "../api/sharedApi"
 import BankSelectModal from "../components/BankSelectModal"
+import { io } from "socket.io-client";
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
   const [testAmount, setTestAmount] = useState("")
-  const [showTestQR, setShowTestQR] = useState(false)
-  const [accessToken, setAccessToken] = useState(null);
+  const [showTestQR, setShowTestQR] = useState(false);
   const [grantToken, setGrantToken] = useState(null)
   const [isOpenBankSelect, setOpenBankSelect] = useState(false)
   const [serviceList, setServiceList] = useState([])
   const [nameBank, setNameBank] = useState(null)
   const [qrData, setQrData] = useState(null);
+  const [transactions, setTransactions] = useState([])
 
-  // Lấy danh sách service 
+
+  // ------------------ Socket.IO ------------------
+  useEffect(() => {
+    const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
+      transports: ["websocket"],
+    });
+
+    socket.on("new_transaction", (data) => {
+      console.log("📥 New transaction:", data);
+      setTransactions((prev) => [data, ...prev]);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  // ------------------ Load Services ------------------
   useEffect(() => {
     const fetch = async () => {
       try {
         const res = await getListServices();
-        setServiceList(res.data || [])
+        setServiceList(res.data || []);
       } catch (err) {
         console.error(err);
       }
     };
     fetch();
-  }, [])
-
-  useEffect(() => {
-    checkSession()
-      .then(res => {
-        console.log(res)
-        // Backend trả về thông tin session hợp lệ
-        // Ví dụ res.data = { accessToken, grantId, requestId }
-        setBankLinked(res.data.bankLinked)
-      })
-      .catch(err => console.error("Check session failed:", err));
   }, []);
 
-  // Mở CasLink
+  // ------------------ Check Session (Reload Safe) ------------------
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const res = await checkSession();
+        setBankLinked(res.data.bankLinked || false);
+      } catch (err) {
+        console.error("Check session failed:", err);
+        setBankLinked(false);
+      }
+    };
+    fetchSession();
+  }, []);
+
+  // ------------------ CasLink ------------------
   const openCasLink = (token) => {
     if (!token) {
       alert("Chưa có grantToken, vui lòng thử lại!");
@@ -61,21 +81,21 @@ export default function DashboardPage() {
           .then(res => {
             if (res.data.success) {
               console.log(res.data.message);
+              // Chỉ update state bankLinked, token vẫn server-side
               setBankLinked(true);
             }
-          }).catch(console.error)
+          })
+          .catch(console.error);
       },
       onExit: () => console.log("CasLink exit"),
     };
 
-    // Gọi hook **ngay lúc có token**
     const { open } = BankHub.useBankHubLink(CasLinkConfigs);
     open();
   };
 
-  const handleLinkBank = async () => {
-    setOpenBankSelect(true);
-  }
+  // ------------------ Handlers ------------------
+  const handleLinkBank = async () => setOpenBankSelect(true);
 
   const handleCreateTestQR = async () => {
     if (!testAmount) return;
@@ -84,20 +104,15 @@ export default function DashboardPage() {
       return;
     }
     try {
-      // Gọi backend tạo QR
-      const payload = { amount: 2000, description: "Test QR", referenceNumber: "11" };
+      const payload = { amount: Number(testAmount), description: "Test QR", referenceNumber: "11" };
       const res = await getQRCode(payload);
-      console.log(res)
-      // res.data chứa QR info từ backend
       setQrData(res.data);
       setShowTestQR(true);
-
     } catch (err) {
       console.error("Failed to create QR:", err);
       alert("Failed to create QR. Check console for details.");
     }
-
-  }
+  };
 
   const handleSelectServices = async (services) => {
     try {
@@ -113,6 +128,7 @@ export default function DashboardPage() {
     }
   }
 
+  // ------------------ JSX ------------------
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="max-w-4xl mx-auto space-y-8">

@@ -1,4 +1,6 @@
 import TokenService from "../services/token.services.js";
+import SessionService from "../services/session.services.js";
+
 
 export const createGrantToken = async (req, res, next) => {
     try {
@@ -14,45 +16,44 @@ export const exchangeAccessToken = async (req, res, next) => {
     try {
         const { publicToken } = req.body;
         const result = await TokenService.exchangePublicToken(publicToken);
-
         const { accessToken, grantId, requestId } = result;
+        console.log('getbyexchange:', accessToken)
+        // Lưu vào PostgreSQL session (server-side)
+        await SessionService.createOrUpdateSession(req.sessionID, {
+            accessToken,
+            grantId,
+            requestId,
+            bankLinked: true
+        });
 
-        // 2️⃣ Lưu session tạm
-        req.session.accessToken = accessToken;
-        req.session.grantId = grantId;
-        req.session.requestId = requestId;
-        console.log(req)
-        // 3️⃣ Lấy thông tin tài khoản
+        // Kiểm tra account info
         const accountInfo = await TokenService.getAccountInfo(accessToken);
-        const isValid = accountInfo &&
-            accountInfo.fiService?.type === "PERSONAL"
-        if (!isValid) {
+        if (!accountInfo || accountInfo.fiService?.type !== "PERSONAL") {
             await TokenService.removeGrant(grantId, accessToken);
-
-            req.session.accessToken = null;
-            req.session.grantId = null;
-            req.session.requestId = null;
-            req.session.bankLinked = false;
-
+            await SessionService.createOrUpdateSession(req.sessionID, {
+                accessToken: null,
+                grantId: null,
+                requestId: null,
+                bankLinked: false
+            });
             return res.status(400).json({
                 success: false,
                 message: "Tài khoản không hợp lệ, quyền đã bị thu hồi."
             });
         }
 
-        req.session.bankLinked = true;
         res.json({
             success: true,
             message: "Tạo tài khoản thành công"
         });
     } catch (err) {
-        next(err)
+        next(err);
     }
-}
+};
 
 export const checkSession = async (req, res) => {
-    console.log(req.session);
+    const session = await SessionService.getSession(req.sessionID);
     res.json({
-        bankLinked: req.session.backLinked || false
-    })
-}
+        bankLinked: session?.bankLinked || false
+    });
+};
