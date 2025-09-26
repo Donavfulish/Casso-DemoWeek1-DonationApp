@@ -8,6 +8,7 @@ export const getQRCode = async (req, res, next) => {
         const accessToken = await QRService.getAcessTokenBySession(sessionId);
 
         const data = req.body;
+        console.log(data);
         const result = await QRService.createQRPay(data, accessToken);
 
         const qr = result.qrPay;

@@ -5,6 +5,7 @@ import { encrypt, decrypt } from "../utils/crypto.js";
 class SessionService {
   static async createOrUpdateSession(sessionId, data) {
     const { accessToken, grantId, requestId, bankLinked, fiFullName, logo } = data;
+    console.log(accessToken);
     const encryptedToken = accessToken ? encrypt(accessToken) : null;
 
     await pool.query(

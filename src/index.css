@@ -71,12 +71,20 @@ body {
 .bg-accent { background-color: var(--accent); }
 .bg-primary { background-color: var(--primary); }
 .bg-destructive {background-color: var(--destructive);}
+.bg-foreground {background-color: var(--foreground);}
+.bg-muted-foreground {background-color: var(--muted-foreground);}
+
+
 /* Text colors */
 .text-foreground { color: var(--foreground); }
 .text-card-foreground { color: var(--card-foreground); }
 .text-accent { color: var(--accent); }
 .text-primary { color: var(--primary); }
 .text-muted-foreground { color: var(--muted-foreground); }
+.text-destructive {color: var(--destructive); }
+.text-ring {color: var(--ring); }
+.text-popover {color: var(--popover); }
+.text-card {color: var(--card); }
 
 /* Borders */
 .border-accent { border-color: var(--accent); }

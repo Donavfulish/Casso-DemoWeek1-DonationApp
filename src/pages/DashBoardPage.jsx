@@ -246,11 +246,11 @@ export default function DashboardPage() {
               </Button>
 
               {showTestQR && qrData?.link && (
-                <div className="mt-4 p-4 border border-border rounded-lg bg-muted/20 flex justify-center">
+                <div className="mt-4 py-2 px-3 border border-border rounded-lg bg-muted/20 flex justify-center">
                   <img
                     src={qrData.link}
                     alt="QR Code"
-                    className="w-48 h-48"
+                    className="w-60 h-60"
                   />
                 </div>
               )}

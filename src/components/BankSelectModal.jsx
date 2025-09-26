@@ -100,7 +100,7 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-sm"
             onClick={handleOverlayClick}
         >
             <div
@@ -125,7 +125,7 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
                                 <ArrowLeft className="h-4 w-4" />
                             </Button>
                         )}
-                        <h2 className="text-xl font-semibold text-foreground">
+                        <h2 className="text-xl font-semibold text-accent">
                             {currentStep === "banks" ? "Select Your Bank" : `${selectedBank?.name} Services`}
                         </h2>
                     </div>
@@ -157,7 +157,7 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
                                         {banksData.map((bank) => (
                                             <Card
                                                 key={bank.fiName}
-                                                className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer border-border hover:border-primary/20"
+                                                className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer border-border hover:border-primary/20 bg-foreground"
                                             >
                                                 <div className="p-6 space-y-4">
                                                     <div className="flex items-center space-x-4">
@@ -187,7 +187,7 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
                                                             </div>
                                                         </div>
                                                         <div className="flex-1 min-w-0">
-                                                            <h3 className="font-medium text-foreground truncate">{bank.name}</h3>
+                                                            <h3 className="font-medium text-popover truncate">{bank.name}</h3>
                                                             <p className="text-sm text-muted-foreground">
                                                                 {bank.services.length} service{bank.services.length !== 1 ? "s" : ""} available
                                                             </p>
@@ -225,7 +225,7 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
                                         {selectedBank.services.map((service) => (
                                             <Card
                                                 key={service.id}
-                                                className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer border-border hover:border-primary/20"
+                                                className="group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:scale-[1.02] cursor-pointer border-border hover:border-primary/20 bg-foreground"
                                             >
                                                 <div className="p-6 space-y-4">
                                                     <div className="flex items-center space-x-3">
@@ -240,12 +240,17 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
                                                                 }}
                                                             />
                                                         ) : null}
-
-                                                        <div className="flex-1">
-                                                            <h3 className="font-medium text-foreground">{service.name}</h3>
-                                                            <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-secondary-foreground">
-                                                                {service.type}
-                                                            </div>
+                                                        <div className="flex-1 flex flex-col ">
+                                                            <h3 className="font-medium text-popover">{service.name}</h3>
+                                                            {service.type === "PERSONAL" ? (
+                                                                <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-ring">
+                                                                    {service.type}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-secondary text-destructive">
+                                                                    {service.type}
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     </div>
 

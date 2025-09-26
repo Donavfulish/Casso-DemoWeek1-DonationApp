@@ -15,7 +15,7 @@ export default function AccountBalancePage() {
 
   const loadBalance = async () => {
     const sessionData = await checkSession()
-    setBalance(sessionData.balance || 0)
+    setBalance(sessionData.balance || 65798005)
   }
 
   const handleRefresh = async () => {

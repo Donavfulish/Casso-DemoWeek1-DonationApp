@@ -6,37 +6,51 @@ export default function TransactionsHistoryPage() {
   const [transactions] = useState([
     {
       id: 1,
-      amount: 50000,
-      from: "A Generous Fan",
-      time: "2024-01-15 14:30:25",
+      amount: -2052000,
+      from: "maketing thue server 3 thang",
+      time: "2025-09-25",
       status: "completed",
     },
     {
       id: 2,
-      amount: 100000,
-      from: "Anonymous Supporter",
-      time: "2024-01-15 12:15:10",
+      amount: -12614000,
+      from: "tran factory boc chuyen xuong 7 tan hang ngay 18",
+      time: "2025-09-24",
       status: "completed",
     },
     {
       id: 3,
-      amount: 25000,
-      from: "Art Lover",
-      time: "2024-01-14 18:45:33",
+      amount: 48429030.3,
+      from: "CONG TY TNHH ARC WORLDWIDE VN CTY TNHH ARC WORLDWIDE HOAN LAI TIE N CHUYEN NHAM",
+      time: "2025-09-23",
       status: "completed",
     },
     {
       id: 4,
-      amount: 75000,
-      from: "Creative Supporter",
-      time: "2024-01-14 16:20:15",
+      amount: 8450000,
+      from: "CTY TNHH NONG NGHIEP GAGACO TC.DNTD 087728.ck mua dat tu Gagaco",
+      time: "2025-09-21",
       status: "completed",
     },
     {
       id: 5,
-      amount: 200000,
-      from: "Big Fan",
-      time: "2024-01-13 20:10:45",
+      amount: -29450000,
+      from: "salary factory luong NV2 9 nam 2019",
+      time: "2025-09-22",
+      status: "completed",
+    },
+    {
+      id: 6,
+      amount: -5814000,
+      from: "factory tron trong xuong 3 lan",
+      time: "2025-09-22",
+      status: "completed",
+    },
+    {
+      id: 7,
+      amount: -840000,
+      from: "maketing lam poster bang hieu tai vuon dau",
+      time: "2025-09-22",
       status: "completed",
     },
   ])
@@ -64,9 +78,15 @@ export default function TransactionsHistoryPage() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground">
-                        {Number.parseInt(transaction.amount).toLocaleString()} VND
-                      </span>
+                      {transaction.amount > 0 ? (
+                        <span className="font-medium text-green-400">
+                          {transaction.amount.toLocaleString()} VND
+                        </span>
+                      ) : (
+                        <span className="font-medium text-destructive">
+                          {transaction.amount.toLocaleString()} VND
+                        </span>
+                      )}
                       <span className="text-sm text-muted-foreground">{transaction.time}</span>
                     </div>
                     <div className="flex items-center justify-between mt-1">
