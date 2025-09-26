@@ -19,8 +19,8 @@ export const getGrantToken = (id) => {
 }
 // export const createQrCode = (payload) => api.post("/qr/create", payload);
 export const getListServices = () => api.get("/services/list");
-export const exchangeToken = (publicToken) => {
-  return api.post("/token/exchange", { publicToken })
+export const exchangeToken = ({ publicToken, fiFullName, logo }) => {
+  return api.post("/token/exchange", { publicToken, fiFullName, logo });
 }
 export const checkSession = () => {
   return api.get("/token/check-session");
@@ -29,5 +29,10 @@ export const checkSession = () => {
 export const getQRCode = (data) => {
   return api.post("pay/qr-pay", data)
 }
+
+export const removeGrant = () => {
+  return api.post("/token/remove");
+}
+
 export default api;
 

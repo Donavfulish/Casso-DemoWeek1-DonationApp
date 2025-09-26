@@ -1,6 +1,9 @@
 @import "tailwindcss";
+
+/* ==============================================
+   QR-Donate Dark-Teal Theme Variables
+============================================== */
 :root {
-  /* QR-Donate dark theme with charcoal background and teal accent */
   --background: #1a202c;
   --foreground: #f7fafc;
   --card: #2d3748;
@@ -45,22 +48,54 @@
   --ring: #38b2ac;
 }
 
+/* ==============================================
+   Global Reset
+============================================== */
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--border);
 }
 
 body {
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: "Inter", system-ui, -apple-system, sans-serif;
 }
 
-@layer base {
-  * {
-    border-color: var(--border);
-  }
-  body {
-    background-color: var(--background);
-    color: var(--foreground);
-  }
+/* ==============================================
+   Utility Classes (sử dụng trực tiếp trong JSX)
+============================================== */
+
+/* Backgrounds */
+.bg-background { background-color: var(--background); }
+.bg-card { background-color: var(--card); }
+.bg-accent { background-color: var(--accent); }
+.bg-primary { background-color: var(--primary); }
+.bg-destructive {background-color: var(--destructive);}
+/* Text colors */
+.text-foreground { color: var(--foreground); }
+.text-card-foreground { color: var(--card-foreground); }
+.text-accent { color: var(--accent); }
+.text-primary { color: var(--primary); }
+.text-muted-foreground { color: var(--muted-foreground); }
+
+/* Borders */
+.border-accent { border-color: var(--accent); }
+.border-primary { border-color: var(--primary); }
+.border { border-color: var(--border); }
+
+/* Radius */
+.rounded-radius { border-radius: var(--radius); }
+
+/* Glassmorphism Helpers */
+.glass {
+  background: rgba(255, 255, 255, 0.05); /* fallback nếu muốn */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+}
+
+/* Gradient helpers */
+.bg-gradient-accent {
+  background: linear-gradient(135deg, rgba(56,178,172,0.3) 0%, rgba(72,187,195,0.3) 100%);
 }

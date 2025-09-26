@@ -1,4 +1,5 @@
 import axiosInstance from "../config/axiosInstance.js";
+import pool from "../config/db.js";
 
 class TokenService {
     static async createGrantToken(fiServiceId) {
@@ -39,11 +40,29 @@ class TokenService {
     static async removeGrant(grantId, accessToken) {
         try {
             const response = await axiosInstance.post("/grant/remove", { grantId }, {
-                headers: { Authorization: `Bearer ${accessToken}` }
+                headers: { Authorization: `${accessToken}` }
             });
             return response;
         } catch (error) {
             throw new Error(error.message || "Failed to remove grant");
+        }
+    }
+
+    static async deleteAccessTokenBySessionId(sessionId) {
+        try {
+            const result = await pool.query(
+                "DELETE FROM sessions WHERE session_id = $1 RETURNING *",
+                [sessionId]
+            );
+
+            if (result.rowCount === 0) {
+                throw new Error(`No session found with sessionId: ${sessionId}`);
+            }
+
+            return { success: true, message: "Session deleted successfully", data: result.rows[0] };
+        } catch (err) {
+            console.error("Failed to delete session:", err);
+            return { success: false, message: err.message };
         }
     }
 }

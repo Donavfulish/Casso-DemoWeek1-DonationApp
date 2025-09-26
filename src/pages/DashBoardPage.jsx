@@ -4,9 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Input } from "../components/ui/input"
 import { CheckCircle, AlertCircle } from "lucide-react"
 import LiveTransactionFeed from "../components/LiveTransactionFeed"
-import { getGrantToken, getListServices, exchangeToken, checkSession, getQRCode } from "../api/sharedApi"
+import { getGrantToken, getListServices, exchangeToken, checkSession, getQRCode, removeGrant } from "../api/sharedApi"
 import BankSelectModal from "../components/BankSelectModal"
 import { io } from "socket.io-client";
+import Header from "../components/Header"
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
@@ -17,7 +18,8 @@ export default function DashboardPage() {
   const [serviceList, setServiceList] = useState([])
   const [nameBank, setNameBank] = useState(null)
   const [qrData, setQrData] = useState(null);
-  const [transactions, setTransactions] = useState([])
+  const [transactions, setTransactions] = useState([]);
+  const [linkedBankInfo, setLinkedBankInfo] = useState({ fiFullName: null, logo: null });
 
 
   // ------------------ Socket.IO ------------------
@@ -55,16 +57,21 @@ export default function DashboardPage() {
       try {
         const res = await checkSession();
         setBankLinked(res.data.bankLinked || false);
+        setLinkedBankInfo({
+          fiFullName: res.data.fiFullName || null,
+          logo: res.data.logo || null
+        });
       } catch (err) {
         console.error("Check session failed:", err);
         setBankLinked(false);
+        setLinkedBankInfo({ fiFullName: null, logo: null });
       }
     };
     fetchSession();
   }, []);
 
   // ------------------ CasLink ------------------
-  const openCasLink = (token) => {
+  const openCasLink = (token, fiFullName, logo) => {
     if (!token) {
       alert("Chưa có grantToken, vui lòng thử lại!");
       return;
@@ -77,15 +84,22 @@ export default function DashboardPage() {
       feature: "qrpay",
       fiServiceType: "ALL",
       onSuccess: (publicToken) => {
-        exchangeToken(publicToken)
+        exchangeToken({ publicToken, fiFullName, logo })
           .then(res => {
             if (res.data.success) {
               console.log(res.data.message);
               // Chỉ update state bankLinked, token vẫn server-side
               setBankLinked(true);
+              console.log(bankLinked, linkedBankInfo)
             }
           })
-          .catch(console.error);
+          .catch(() => {
+            setLinkedBankInfo({
+              fiFullName: null,
+              logo: null
+            });
+            console.error
+          });
       },
       onExit: () => console.log("CasLink exit"),
     };
@@ -96,6 +110,20 @@ export default function DashboardPage() {
 
   // ------------------ Handlers ------------------
   const handleLinkBank = async () => setOpenBankSelect(true);
+
+  const handleDeleteBank = async () => {
+    try {
+      await removeGrant(); // ✅ sửa tên hàm đúng
+      // reset state UI
+      setBankLinked(false);
+      setLinkedBankInfo({ fiFullName: null, logo: null });
+      setGrantToken(null);
+      alert("Bank account unlinked successfully!");
+    } catch (err) {
+      console.error("Failed to remove bank:", err);
+      alert("Failed to remove bank. Check console for details.");
+    }
+  };
 
   const handleCreateTestQR = async () => {
     if (!testAmount) return;
@@ -118,10 +146,13 @@ export default function DashboardPage() {
     try {
       const res = await getGrantToken(services.id);
       const token = res.data.grantToken;
-      setNameBank(services.fiName)
+      setLinkedBankInfo({
+        fiFullName: services.fiFullName || null,
+        logo: services.logo || null
+      });
       setGrantToken(token);
       setOpenBankSelect(false);
-      openCasLink(token);
+      openCasLink(token, services.fiFullName, services.logo);
 
     } catch (err) {
       console.error(err)
@@ -131,6 +162,7 @@ export default function DashboardPage() {
   // ------------------ JSX ------------------
   return (
     <div className="min-h-screen bg-background p-4">
+      <Header />
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-foreground mb-2">My Dashboard</h1>
@@ -153,13 +185,32 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm">
-                  Status:{" "}
+                <span className="text-sm flex items-center gap-2">
                   {bankLinked ? (
-                    <span className="text-green-500 font-medium">Linked to {nameBank}</span>
-                  ) : (
-                    <span className="text-yellow-500 font-medium">Not Linked</span>
-                  )}
+                    <div className="w-full max-w-sm flex items-center justify-between bg-white border border-gray-200 rounded-lg shadow-sm px-4 py-2">
+                      {/* Logo + tên */}
+                      <div className="flex items-center gap-3">
+                        {linkedBankInfo.logo && (
+                          <img
+                            src={linkedBankInfo.logo}
+                            alt={linkedBankInfo.fiFullName}
+                            className="w-9 h-9 rounded-full object-cover"
+                          />
+                        )}
+                        <span className="text-gray-800 font-semibold">{linkedBankInfo.fiFullName || nameBank}</span>
+                      </div>
+
+                      {/* Nút Xóa */}
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="ml-25 px-2 py-1 text-sm"
+                        onClick={handleDeleteBank}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  ) : (<div className="text-sm font-medium text-yellow-400">Not linked yet</div>)}
                 </span>
               </div>
               <Button onClick={handleLinkBank} className="w-full">

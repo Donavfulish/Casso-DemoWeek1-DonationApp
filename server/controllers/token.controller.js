@@ -14,16 +14,17 @@ export const createGrantToken = async (req, res, next) => {
 
 export const exchangeAccessToken = async (req, res, next) => {
     try {
-        const { publicToken } = req.body;
+        const { publicToken, fiFullName, logo } = req.body;
         const result = await TokenService.exchangePublicToken(publicToken);
         const { accessToken, grantId, requestId } = result;
-        console.log('getbyexchange:', accessToken)
         // Lưu vào PostgreSQL session (server-side)
         await SessionService.createOrUpdateSession(req.sessionID, {
             accessToken,
             grantId,
             requestId,
-            bankLinked: true
+            bankLinked: true,
+            fiFullName,
+            logo
         });
 
         // Kiểm tra account info
@@ -34,7 +35,9 @@ export const exchangeAccessToken = async (req, res, next) => {
                 accessToken: null,
                 grantId: null,
                 requestId: null,
-                bankLinked: false
+                bankLinked: false,
+                fiFullName: null,
+                logo: null
             });
             return res.status(400).json({
                 success: false,
@@ -46,6 +49,7 @@ export const exchangeAccessToken = async (req, res, next) => {
             success: true,
             message: "Tạo tài khoản thành công"
         });
+
     } catch (err) {
         next(err);
     }
@@ -53,7 +57,28 @@ export const exchangeAccessToken = async (req, res, next) => {
 
 export const checkSession = async (req, res) => {
     const session = await SessionService.getSession(req.sessionID);
+
     res.json({
-        bankLinked: session?.bankLinked || false
+        bankLinked: session?.bankLinked || false,
+        fiFullName: session?.fiFullName || null,
+        logo: session?.logo || null
     });
 };
+
+export const removeGrant = async (req, res) => {
+    try {
+        const session = await SessionService.getSession(req.sessionID);
+        if (!session) {
+            return res.status(404).json({ message: "Session not found" });
+        }
+
+        await TokenService.removeGrant(session.grantId, session.accessToken);
+        await TokenService.deleteAccessTokenBySessionId(req.sessionID);
+
+        return res.json({ message: "Successfully removed grant and session" });
+        
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Failed remove" })
+    }
+}
