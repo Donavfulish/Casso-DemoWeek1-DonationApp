@@ -8,31 +8,38 @@ const api = axios.create({
   withCredentials: true, // 👈 bắt buộc cho session cross-origin
 });
 
+// ------------------ Token ------------------
 export const getGrantToken = (id) => {
   const payload = {
     fiServiceId: id,
     scopes: "transaction",
     redirectUri: "http://localhost:3000/success",
     language: "vi",
-  }
-  return api.post("/token/grant", payload)
-}
-// export const createQrCode = (payload) => api.post("/qr/create", payload);
-export const getListServices = () => api.get("/services/list");
-export const exchangeToken = ({ publicToken, fiFullName, logo }) => {
-  return api.post("/token/exchange", { publicToken, fiFullName, logo });
-}
-export const checkSession = () => {
-  return api.get("/token/check-session");
+  };
+  return api.post("/token/grant", payload);
 };
 
-export const getQRCode = (data) => {
-  return api.post("pay/qr-pay", data)
-}
+export const exchangeToken = ({ publicToken, fiFullName, logo }) => {
+  return api.post("/token/exchange", { publicToken, fiFullName, logo });
+};
 
-export const removeGrant = () => {
-  return api.post("/token/remove");
-}
+export const removeGrant = (fiServiceId, accountNumber) => {
+  return api.post("/token/remove", { fiServiceId, accountNumber });
+};
+
+// ------------------ Services ------------------
+export const getListServices = () => api.get("/services/list");
+
+// ------------------ Session ------------------
+export const checkSession = () => {
+  return api.get("/sessions/check-session");
+};
+
+// ------------------ QR Pay ------------------
+export const getQRCode = (data) => {
+  // payload bắt buộc có fiServiceId + accountNumber
+  return api.post("/pay/qr-pay", data);
+};
 
 export default api;
 

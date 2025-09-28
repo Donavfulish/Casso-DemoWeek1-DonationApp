@@ -6,7 +6,8 @@ import bodyParser from "body-parser";
 import tokenrouter from "./routes/token.routes.js";
 import channelrouter from "./routes/channel.routes.js";
 import qrrouter from "./routes/qrpay.routes.js";
-import tranrouter from "./routes/transactions.routes.js";
+import webhookrouter from "./routes/webhook.routes.js";
+import sessionrouter from "./routes/session.routes.js";
 
 const app = express();
 
@@ -29,7 +30,8 @@ app.use(session({
 app.use("/token", tokenrouter);
 app.use("/services", channelrouter)
 app.use("/pay", qrrouter)
-app.use("/webhook", tranrouter)
+app.use("/webhook", webhookrouter)
+app.use("/sessions", sessionrouter)
 
 app.use((err, req, res, next) => {
   console.error("Error middleware:", err.message);

@@ -1,5 +1,6 @@
 import axiosInstance from "../config/axiosInstance.js";
 import pool from "../config/db.js";
+import { decrypt } from "../utils/crypto.js";
 
 class TokenService {
     static async createGrantToken(fiServiceId) {
@@ -17,7 +18,7 @@ class TokenService {
         }
     }
 
-    static async exchangePublicToken(publicToken) {
+    static async exchangeAccessToken(publicToken) {
         try {
             const response = await axiosInstance.post("/grant/exchange", { publicToken });
             return response;
@@ -65,6 +66,25 @@ class TokenService {
             return { success: false, message: err.message };
         }
     }
+
+    static async getAccessTokenBySession(sessionId, fiServiceId, accountNumber) {
+        const result = await pool.query(
+            `SELECT access_token, bank_linked 
+             FROM sessions 
+             WHERE session_id = $1 
+             AND fiserviceid = $2 
+             AND accountnumber = $3 
+             `,
+            [sessionId, fiServiceId, accountNumber]
+        );
+
+        if (result.rowCount === 0) {
+            throw new Error("Không tìm thấy accessToken hợp lệ cho tài khoản này trong session");
+        }
+
+        return decrypt(result.rows[0].access_token);
+    }
+
 }
 
 export default TokenService

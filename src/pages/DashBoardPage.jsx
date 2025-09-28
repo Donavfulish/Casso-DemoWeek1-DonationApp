@@ -6,37 +6,16 @@ import { CheckCircle, AlertCircle } from "lucide-react"
 import LiveTransactionFeed from "../components/LiveTransactionFeed"
 import { getGrantToken, getListServices, exchangeToken, checkSession, getQRCode, removeGrant } from "../api/sharedApi"
 import BankSelectModal from "../components/BankSelectModal"
-import { io } from "socket.io-client";
 import Header from "../components/Header"
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
   const [testAmount, setTestAmount] = useState("")
   const [showTestQR, setShowTestQR] = useState(false);
-  const [grantToken, setGrantToken] = useState(null)
   const [isOpenBankSelect, setOpenBankSelect] = useState(false)
   const [serviceList, setServiceList] = useState([])
-  const [nameBank, setNameBank] = useState(null)
   const [qrData, setQrData] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  const [linkedBankInfo, setLinkedBankInfo] = useState({ fiFullName: null, logo: null });
-
-
-  // ------------------ Socket.IO ------------------
-  useEffect(() => {
-    const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
-      transports: ["websocket"],
-    });
-
-    socket.on("new_transaction", (data) => {
-      console.log("📥 New transaction:", data);
-      setTransactions((prev) => [data, ...prev]);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, []);
+  const [linkedBanks, setLinkedBanks] = useState([]); 
 
   // ------------------ Load Services ------------------
   useEffect(() => {
@@ -56,15 +35,12 @@ export default function DashboardPage() {
     const fetchSession = async () => {
       try {
         const res = await checkSession();
-        setBankLinked(res.data.bankLinked || false);
-        setLinkedBankInfo({
-          fiFullName: res.data.fiFullName || null,
-          logo: res.data.logo || null
-        });
+        setBankLinked((res.data.accounts || []).length > 0);
+        setLinkedBanks(res.data.accounts || []);
       } catch (err) {
         console.error("Check session failed:", err);
         setBankLinked(false);
-        setLinkedBankInfo({ fiFullName: null, logo: null });
+        setLinkedBanks([]);
       }
     };
     fetchSession();
@@ -87,21 +63,14 @@ export default function DashboardPage() {
         exchangeToken({ publicToken, fiFullName, logo })
           .then(res => {
             if (res.data.success) {
-              console.log(res.data.message);
-              // Chỉ update state bankLinked, token vẫn server-side
               setBankLinked(true);
-              console.log(bankLinked, linkedBankInfo)
             }
           })
           .catch(() => {
-            setLinkedBankInfo({
-              fiFullName: null,
-              logo: null
-            });
-            console.error
+            console.error("Exchange token failed");
           });
       },
-      onExit: () => console.log("CasLink exit"),
+      onExit: () => { },
     };
 
     const { open } = BankHub.useBankHubLink(CasLinkConfigs);
@@ -111,13 +80,12 @@ export default function DashboardPage() {
   // ------------------ Handlers ------------------
   const handleLinkBank = async () => setOpenBankSelect(true);
 
-  const handleDeleteBank = async () => {
+  const handleDeleteBank = async (bank) => {
     try {
-      await removeGrant(); // ✅ sửa tên hàm đúng
+      await removeGrant(bank.fiServiceId, bank.accountNumber);
       // reset state UI
       setBankLinked(false);
-      setLinkedBankInfo({ fiFullName: null, logo: null });
-      setGrantToken(null);
+      setLinkedBanks(prev => prev.filter(b => !(b.fiServiceId === bank.fiServiceId && b.accountNumber === bank.accountNumber)));
       alert("Bank account unlinked successfully!");
     } catch (err) {
       console.error("Failed to remove bank:", err);
@@ -127,12 +95,20 @@ export default function DashboardPage() {
 
   const handleCreateTestQR = async () => {
     if (!testAmount) return;
-    if (!bankLinked) {
+    if (!bankLinked || linkedBanks.length === 0) {
       alert("Please link a bank account first!");
       return;
     }
+    
+    const bank = linkedBanks[0]; // demo: lấy bank đầu tiên
     try {
-      const payload = { amount: Number(testAmount), description: "Test QR", referenceNumber: "11" };
+      const payload = {
+        fiServiceId: bank.fiServiceId,
+        accountNumber: bank.accountNumber,
+        amount: Number(testAmount),
+        description: "Test QR",
+        referenceNumber: "11"
+      };
       const res = await getQRCode(payload);
       setQrData(res.data);
       setShowTestQR(true);
@@ -146,11 +122,6 @@ export default function DashboardPage() {
     try {
       const res = await getGrantToken(services.id);
       const token = res.data.grantToken;
-      setLinkedBankInfo({
-        fiFullName: services.fiFullName || null,
-        logo: services.logo || null
-      });
-      setGrantToken(token);
       setOpenBankSelect(false);
       openCasLink(token, services.fiFullName, services.logo);
 
@@ -186,31 +157,32 @@ export default function DashboardPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm flex items-center gap-2">
-                  {bankLinked ? (
-                    <div className="w-full max-w-sm flex items-center justify-between bg-white border border-gray-200 rounded-lg shadow-sm px-4 py-2">
-                      {/* Logo + tên */}
-                      <div className="flex items-center gap-3">
-                        {linkedBankInfo.logo && (
-                          <img
-                            src={linkedBankInfo.logo}
-                            alt={linkedBankInfo.fiFullName}
-                            className="w-9 h-9 rounded-full object-cover"
-                          />
-                        )}
-                        <span className="text-gray-800 font-semibold">{linkedBankInfo.fiFullName || nameBank}</span>
-                      </div>
-
-                      {/* Nút Xóa */}
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="ml-25 px-2 py-1 text-sm"
-                        onClick={handleDeleteBank}
-                      >
-                        Xóa
-                      </Button>
+                  {linkedBanks.length > 0 ? (
+                    <div className="space-y-2">
+                      {linkedBanks.map((bank, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between bg-white border rounded-lg px-4 py-2 shadow-sm"
+                        >
+                          <div className="flex items-center gap-3">
+                            {bank.logo && (
+                              <img src={bank.logo} alt={bank.fiFullName} className="w-9 h-9 rounded-full" />
+                            )}
+                            <span className="text-gray-800 font-semibold">{bank.fiFullName}</span>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleDeleteBank(bank)}
+                          >
+                            Xóa
+                          </Button>
+                        </div>
+                      ))}
                     </div>
-                  ) : (<div className="text-sm font-medium text-yellow-400">Not linked yet</div>)}
+                  ) : (
+                    <div className="text-sm font-medium text-yellow-400">Not linked yet</div>
+                  )}
                 </span>
               </div>
               <Button onClick={handleLinkBank} className="w-full">

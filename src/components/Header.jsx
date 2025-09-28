@@ -11,8 +11,7 @@ export default function Header() {
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const res = await checkSession()
-                console.log(res)
+                const res = await checkSession();
                 setSession(res)
             } catch (err) {
                 console.error(err);

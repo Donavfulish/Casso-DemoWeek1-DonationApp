@@ -1,15 +1,3 @@
-import TransactionServices from "../services/transaction.services.js";
-
-export const getTransactions = async (req, res) => {
-    try {
-        const data = await TransactionServices.getTransaction();
-        return res.json({ message: "Sucess", data });
-    } catch (err) {
-        console.error("Error fetching transactions:", err);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-}
-
 export async function handleWebhook(req, res) {
     try {
         const transaction = req.body.transaction || {

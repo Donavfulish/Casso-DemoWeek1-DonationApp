@@ -1,63 +1,67 @@
-"use client"
-
 import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
+import { io } from "socket.io-client";
 
 export default function LiveTransactionFeed() {
-  const [transactions, setTransactions] = useState([
-    {
-      id: 1,
-      amount: "50000",
-      from: "A Generous Fan",
-      time: new Date(Date.now() - 1000 * 60 * 5), // 5 minutes ago
-    },
-    {
-      id: 2,
-      amount: "100000",
-      from: "Anonymous Supporter",
-      time: new Date(Date.now() - 1000 * 60 * 15), // 15 minutes ago
-    },
-    {
-      id: 3,
-      amount: "20000",
-      from: "Art Lover",
-      time: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
-    },
-  ])
-
+  const [transactions, setTransactions] = useState([])
+  const [latestAlert, setLatestAlert] = useState(null)
+  const [isVisible, setIsVisible] = useState(false)
+  // ------------------ Socket.IO ------------------
   useEffect(() => {
-    // Simulate new donations every 10-20 seconds
-    const interval = setInterval(
-      () => {
-        const randomAmount = ["20000", "50000", "100000", "75000"][Math.floor(Math.random() * 4)]
-        const randomNames = [
-          "A Generous Fan",
-          "Anonymous Supporter",
-          "Art Lover",
-          "Kind Stranger",
-          "Creative Supporter",
-        ]
-        const randomName = randomNames[Math.floor(Math.random() * randomNames.length)]
+    const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
+      transports: ["websocket"],
+    })
 
-        const newTransaction = {
-          id: Date.now(),
-          amount: randomAmount,
-          from: randomName,
-          time: new Date(),
-        }
+    socket.on("new_transaction", (data) => {
+      const newTransaction = {
+        id: Date.now(),
+        amount: data.amount,
+        from: data.donor,
+        description: data.description,
+        time: new Date()
+      }
 
-        setTransactions((prev) => [newTransaction, ...prev.slice(0, 9)]) // Keep only 10 most recent
-      },
-      Math.random() * 10000 + 10000,
-    ) // Random interval between 10-20 seconds
+      // Cập nhật danh sách
+      setTransactions((prev) => [newTransaction, ...prev.slice(0, 9)])
 
-    return () => clearInterval(interval)
+      // Hiển thị alert trong 10s
+      setLatestAlert(newTransaction)
+      setIsVisible(true)
+
+      setTimeout(() => setIsVisible(false), 5000)
+      // Sau 10s thì gỡ khỏi DOM
+      setTimeout(() => setLatestAlert(null), 5000)
+    })
+
+    return () => {
+      socket.disconnect()
+    }
   }, [])
 
   return (
     <div className="space-y-4">
+      {latestAlert && (
+        <div
+          key={latestAlert.id}
+          className="absolute right-0 left-0 mx-auto w-fit max-w-md
+                     bg-green-400 text-white px-6 py-4 rounded-xl shadow-lg text-center z-50
+                     animate-in fade-in-0 slide-in-from-bottom-4
+                     animate-out fade-out-0 slide-out-to-top-4
+                     duration-1000"
+        >
+          🎉 <span className="font-semibold">{latestAlert.from}</span> vừa donate{" "}
+          <span className="font-bold">
+            {Number.parseInt(latestAlert.amount).toLocaleString()} VND
+          </span>
+          {latestAlert.description && (
+            <p className="mt-2 italic text-sm text-white/90">
+              “{latestAlert.description}”
+            </p>
+          )}
+        </div>
+      )}
       <h3 className="text-lg font-semibold text-foreground">Recent Donations (Live)</h3>
-
+      {/* Danh sách donate */}
       <div className="space-y-2">
         {transactions.length === 0 ? (
           <p className="text-muted-foreground text-center py-8">No donations yet</p>
@@ -65,9 +69,8 @@ export default function LiveTransactionFeed() {
           transactions.map((transaction, index) => (
             <div
               key={transaction.id}
-              className={`flex items-center justify-between p-3 rounded-lg border border-border bg-card/50 transition-all duration-500 ${
-                index === 0 ? "animate-in fade-in-0 slide-in-from-top-2" : ""
-              }`}
+              className={`flex items-center justify-between p-3 rounded-lg border border-border bg-card/50 transition-all duration-500 ${index === 0 ? "animate-in fade-in-0 slide-in-from-top-2" : ""
+                }`}
             >
               <div className="flex flex-col">
                 <span className="font-medium text-card-foreground">
@@ -76,7 +79,7 @@ export default function LiveTransactionFeed() {
                 <span className="text-sm text-muted-foreground">from {transaction.from}</span>
               </div>
               <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(transaction.time, { addSuffix: true })}
+                {formatDistanceToNow(new Date(transaction.time), { addSuffix: true })}
               </span>
             </div>
           ))
