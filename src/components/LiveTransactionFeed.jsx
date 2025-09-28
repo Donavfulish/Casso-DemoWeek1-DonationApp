@@ -2,7 +2,7 @@ import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { io } from "socket.io-client";
 
-export default function LiveTransactionFeed() {
+export default function LiveTransactionFeed({fiServiceId, accountNumber}) {
   const [transactions, setTransactions] = useState([])
   const [latestAlert, setLatestAlert] = useState(null)
   const [isVisible, setIsVisible] = useState(false)
@@ -13,10 +13,10 @@ export default function LiveTransactionFeed() {
     })
 
     socket.on("new_transaction", (data) => {
+      console.log(data);
       const newTransaction = {
-        id: Date.now(),
         amount: data.amount,
-        from: data.donor,
+        from: data.accountName,
         description: data.description,
         time: new Date()
       }
@@ -25,6 +25,7 @@ export default function LiveTransactionFeed() {
       setTransactions((prev) => [newTransaction, ...prev.slice(0, 9)])
 
       // Hiển thị alert trong 10s
+      console.log(newTransaction);
       setLatestAlert(newTransaction)
       setIsVisible(true)
 

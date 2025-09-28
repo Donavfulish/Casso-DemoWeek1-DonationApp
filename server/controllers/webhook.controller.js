@@ -1,17 +1,35 @@
+
+import TransactionService from "../services/transaction.services.js";
+
 export async function handleWebhook(req, res) {
     try {
-        const transaction = req.body.transaction || {
-            counterAccountName: "Unknown",
-            amount: 0,
-            description: "No data (test mode)",
-        };
+        const payload = req.body.transaction;
+        const {
+            fiId: fiServiceId,
+            accountNumber,
+            amount,
+            counterAccountName
+        } = payload;
+
+        // Gán default nếu thiếu
+        const desc = "Donate cho thằng em có động lực";
+        const accName = counterAccountName || "Kẻ bí ấn";
 
         const io = req.app.get("io");
         io.emit("new_transaction", {
-            donor: transaction.counterAccountName,
-            amount: transaction.amount,
-            description: transaction.description,
+            amount,
+            description: desc,
+            accountName: accName
         });
+
+        await TransactionService.createDonation({
+            fiServiceId,
+            accountNumber,
+            amount,
+            description: desc,
+            accountName: accName,
+            time: new Date()
+        })
 
         return res.json({ message: "Webhook received" });
     } catch (err) {

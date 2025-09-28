@@ -8,6 +8,7 @@ import channelrouter from "./routes/channel.routes.js";
 import qrrouter from "./routes/qrpay.routes.js";
 import webhookrouter from "./routes/webhook.routes.js";
 import sessionrouter from "./routes/session.routes.js";
+import transrouter from "./routes/transaction.routes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/services", channelrouter)
 app.use("/pay", qrrouter)
 app.use("/webhook", webhookrouter)
 app.use("/sessions", sessionrouter)
+app.use("/transaction", transrouter)
 
 app.use((err, req, res, next) => {
   console.error("Error middleware:", err.message);

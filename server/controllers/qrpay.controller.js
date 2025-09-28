@@ -1,5 +1,6 @@
 import QRService from "../services/qrpay.services.js";
 import TokenService from "../services/token.services.js";
+import QRCode from "qrcode"; 
 
 export const getQRCode = async (req, res, next) => {
     try {
@@ -17,16 +18,19 @@ export const getQRCode = async (req, res, next) => {
         const result = await QRService.getQRCode(qrPayload, accessToken);
 
         const qr = result.qrPay;
-        const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName } = qr;
+        const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName, qrCode } = qr;
 
         const template = "compact2";
         const link = `https://img.vietqr.io/image/${bin}-${qrAccNo}-${template}.png?amount=${qrAmount}&addInfo=${qrDesc}&accountName=${accountName}`;
-
+        const dynamicQRBase64 = await QRCode.toDataURL(qrCode, { width: 300 });
+        
+        console.log(qrCode);
         res.json({
             success: true,
             message: "QR code generated successfully",
             qrData: result,
             link: link,
+            dynamicLink: dynamicQRBase64
         });
 
     } catch (error) {

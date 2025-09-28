@@ -90,7 +90,7 @@ export default function TestPaymentQRCard({ linkedBanks }) {
 
                 {showTestQR && qrData?.link && (
                     <div className="mt-4 py-2 px-3 border border-border rounded-lg bg-muted/20 flex justify-center">
-                        <img src={qrData.link} alt="QR Code" className="w-60 h-60" />
+                        <img src={qrData.dynamicLink} alt="QR Code" className="w-60 h-60" />
                     </div>
                 )}
             </CardContent>
