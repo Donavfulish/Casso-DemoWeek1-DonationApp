@@ -36,7 +36,20 @@ class SessionService {
       `SELECT * FROM sessions WHERE fiserviceid = $1 AND accountnumber = $2`,
       [fiServiceId, accountNumber]
     );
-    return result.rows[0];
+    if (result.rowCount === 0) return null;
+
+    const row = result.rows[0];
+    return {
+      sessionId: row.session_id,
+      accessToken: row.access_token ? decrypt(row.access_token) : null,
+      grantId: row.grant_id,
+      requestId: row.request_id,
+      bankLinked: row.bank_linked,
+      fiFullName: row.fifullname,
+      logo: row.logo,
+      fiServiceId: row.fiserviceid,
+      accountNumber: row.accountnumber
+    };
   }
 
   // Xóa theo fiServiceId + accountNumber

@@ -37,6 +37,7 @@ export default function DashboardPage() {
         const res = await checkSession();
         setBankLinked((res.data.accounts || []).length > 0);
         setLinkedBanks(res.data.accounts || []);
+        console.log(res.data.accounts);
       } catch (err) {
         console.error("Check session failed:", err);
         setBankLinked(false);
@@ -123,6 +124,10 @@ export default function DashboardPage() {
       const res = await getGrantToken(services.id);
       const token = res.data.grantToken;
       setOpenBankSelect(false);
+      setLinkedBanks({
+        fiFullName: services.fiFullName,
+        logo: services.logo
+      })
       openCasLink(token, services.fiFullName, services.logo);
 
     } catch (err) {
