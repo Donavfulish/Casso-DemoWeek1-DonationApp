@@ -25,9 +25,9 @@ export default function Header() {
     const handleNavigation = async (path, requiresBankLink = false) => {
         if (requiresBankLink) {
             try {
-                const data = await handleApi(checkSession())
-                if (!data.bankLinked) {
-                    toast.error("Please link your bank account first!") // 👈 thay alert
+                const sessionData = await handleApi(checkSession())
+                if (!sessionData.accounts.length) {
+                    toast.error("Please link your bank account first!")
                     return
                 }
             } catch (err) {
