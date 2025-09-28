@@ -4,7 +4,7 @@ import DashboardPage from "./pages/DashBoardPage"
 import DonationPage from "./pages/DonationPage"
 import AccountBalancePage from "./pages/AboutBalancePage";
 import TransactionsHistoryPage from "./pages/TransactionsHistoryPage";
-
+import { ToastContainer } from "react-toastify";
 export default function App() {
   return (
     <BrowserRouter>
@@ -13,10 +13,11 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/:username" element={<DonationPage />} />
-          <Route path="/transactions" element={<TransactionsHistoryPage/>} />
-          <Route path="/balance" element={<AccountBalancePage/>} />
+          <Route path="/transactions" element={<TransactionsHistoryPage />} />
+          <Route path="/balance" element={<AccountBalancePage />} />
         </Routes>
       </div>
+      <ToastContainer position="top-right" autoClose={3000} />
     </BrowserRouter>
   )
 }
