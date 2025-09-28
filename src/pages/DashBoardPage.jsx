@@ -7,6 +7,7 @@ import LiveTransactionFeed from "../components/LiveTransactionFeed"
 import { getGrantToken, getListServices, exchangeToken, checkSession, getQRCode, removeGrant } from "../api/sharedApi"
 import BankSelectModal from "../components/BankSelectModal"
 import Header from "../components/Header"
+import LinkedBankItem from "../components/LinkedBankItem"
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
@@ -15,7 +16,7 @@ export default function DashboardPage() {
   const [isOpenBankSelect, setOpenBankSelect] = useState(false)
   const [serviceList, setServiceList] = useState([])
   const [qrData, setQrData] = useState(null);
-  const [linkedBanks, setLinkedBanks] = useState([]); 
+  const [linkedBanks, setLinkedBanks] = useState([]);
 
   // ------------------ Load Services ------------------
   useEffect(() => {
@@ -31,19 +32,19 @@ export default function DashboardPage() {
   }, []);
 
   // ------------------ Check Session (Reload Safe) ------------------
+  const fetchSession = async () => {
+    try {
+      const res = await checkSession();
+      setBankLinked((res.data.accounts || []).length > 0);
+      setLinkedBanks(res.data.accounts || []);
+    } catch (err) {
+      console.error("Check session failed:", err);
+      setBankLinked(false);
+      setLinkedBanks([]);
+    }
+  };
+
   useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await checkSession();
-        setBankLinked((res.data.accounts || []).length > 0);
-        setLinkedBanks(res.data.accounts || []);
-        console.log(res.data.accounts);
-      } catch (err) {
-        console.error("Check session failed:", err);
-        setBankLinked(false);
-        setLinkedBanks([]);
-      }
-    };
     fetchSession();
   }, []);
 
@@ -60,16 +61,15 @@ export default function DashboardPage() {
       grantToken: token,
       feature: "qrpay",
       fiServiceType: "ALL",
-      onSuccess: (publicToken) => {
-        exchangeToken({ publicToken, fiFullName, logo })
-          .then(res => {
-            if (res.data.success) {
-              setBankLinked(true);
-            }
-          })
-          .catch(() => {
-            console.error("Exchange token failed");
-          });
+      onSuccess: async (publicToken) => {
+        try {
+          const res = await exchangeToken({ publicToken, fiFullName, logo });
+          if (res.data.success) {
+            await fetchSession(); // 🔥 gọi lại để sync UI với DB
+          }
+        } catch (e) {
+          console.error("Exchange token failed", e);
+        }
       },
       onExit: () => { },
     };
@@ -84,7 +84,6 @@ export default function DashboardPage() {
   const handleDeleteBank = async (bank) => {
     try {
       await removeGrant(bank.fiServiceId, bank.accountNumber);
-      // reset state UI
       setBankLinked(false);
       setLinkedBanks(prev => prev.filter(b => !(b.fiServiceId === bank.fiServiceId && b.accountNumber === bank.accountNumber)));
       alert("Bank account unlinked successfully!");
@@ -100,7 +99,7 @@ export default function DashboardPage() {
       alert("Please link a bank account first!");
       return;
     }
-    
+
     const bank = linkedBanks[0]; // demo: lấy bank đầu tiên
     try {
       const payload = {
@@ -124,12 +123,7 @@ export default function DashboardPage() {
       const res = await getGrantToken(services.id);
       const token = res.data.grantToken;
       setOpenBankSelect(false);
-      setLinkedBanks({
-        fiFullName: services.fiFullName,
-        logo: services.logo
-      })
       openCasLink(token, services.fiFullName, services.logo);
-
     } catch (err) {
       console.error(err)
     }
@@ -160,35 +154,20 @@ export default function DashboardPage() {
               <CardDescription>Connect your bank account to receive donations</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm flex items-center gap-2">
-                  {linkedBanks.length > 0 ? (
-                    <div className="space-y-2">
-                      {linkedBanks.map((bank, idx) => (
-                        <div
-                          key={idx}
-                          className="flex items-center justify-between bg-white border rounded-lg px-4 py-2 shadow-sm"
-                        >
-                          <div className="flex items-center gap-3">
-                            {bank.logo && (
-                              <img src={bank.logo} alt={bank.fiFullName} className="w-9 h-9 rounded-full" />
-                            )}
-                            <span className="text-gray-800 font-semibold">{bank.fiFullName}</span>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteBank(bank)}
-                          >
-                            Xóa
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-sm font-medium text-yellow-400">Not linked yet</div>
-                  )}
-                </span>
+              <div className="text-sm">
+                {linkedBanks.length > 0 ? (
+                  <div className="space-y-2">
+                    {linkedBanks.map((bank, idx) => (
+                      <LinkedBankItem
+                        key={idx}
+                        bank={bank}
+                        onDelete={handleDeleteBank}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-sm font-medium text-yellow-400">Not linked yet</div>
+                )}
               </div>
               <Button onClick={handleLinkBank} className="w-full">
                 {bankLinked ? "Link Another Account" : "Link Bank Account"}
