@@ -16,7 +16,7 @@ export const getQRCode = async (req, res, next) => {
 
         const result = await QRService.getQRCode(qrPayload, accessToken);
 
-         const qr = result.qrPay;
+        const qr = result.qrPay;
         const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName } = qr;
 
         const template = "compact2";
@@ -24,12 +24,17 @@ export const getQRCode = async (req, res, next) => {
 
         res.json({
             success: true,
+            message: "QR code generated successfully",
             qrData: result,
-            link: link
+            link: link,
         });
 
     } catch (error) {
         console.error("[getQRCode] error:", error.response?.data || error.message);
-        next(error)
+
+        res.status(400).json({
+            success: false,
+            message: error.response?.data?.message || error.message || "Failed to generate QR code",
+        });
     }
 } 

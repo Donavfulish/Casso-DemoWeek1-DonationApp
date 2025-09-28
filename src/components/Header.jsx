@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
-import { checkSession } from "../api/sharedApi"
+import { handleApi } from "../api/handleApi"
+import { checkSession } from "../api/session.api"
+import { toast } from "react-toastify"
 
 export default function Header() {
     const navigate = useNavigate()
@@ -11,10 +13,10 @@ export default function Header() {
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const res = await checkSession();
-                setSession(res)
+                const data = await handleApi(checkSession()) // 👈 sẽ toast nếu backend trả về message
+                setSession(data)
             } catch (err) {
-                console.error(err);
+                console.error("Failed to fetch session:", err)
             }
         }
         fetchSession()
@@ -22,12 +24,16 @@ export default function Header() {
 
     const handleNavigation = async (path, requiresBankLink = false) => {
         if (requiresBankLink) {
-            const sessionData = await checkSession()
-            if (!sessionData.data.bankLinked) {
-                alert("Please link your bank account first!")
+            try {
+                const data = await handleApi(checkSession())
+                if (!data.bankLinked) {
+                    toast.error("Please link your bank account first!") // 👈 thay alert
+                    return
+                }
+            } catch (err) {
+                console.error("Session check failed:", err)
                 return
-            } 
-            else navigate(path)
+            }
         }
         navigate(path)
     }

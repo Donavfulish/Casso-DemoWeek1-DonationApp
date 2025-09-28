@@ -2,7 +2,8 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { RefreshCw } from "lucide-react"
-import { checkSession } from "../api/sharedApi"
+import { checkSession } from "../api/session.api"
+import { handleApi } from "../api/handleApi"
 import Header from "@/components/Header"
 
 export default function AccountBalancePage() {
@@ -14,13 +15,12 @@ export default function AccountBalancePage() {
   }, [])
 
   const loadBalance = async () => {
-    const sessionData = await checkSession()
+    const data = await handleApi(checkSession())
     setBalance(sessionData.balance || 65798005)
   }
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    // Simulate API call delay
     setTimeout(async () => {
       await loadBalance()
       setIsRefreshing(false)

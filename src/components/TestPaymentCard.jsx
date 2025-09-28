@@ -2,8 +2,9 @@ import { useState, useEffect } from "react"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 import { Button } from "../components/ui/button"
-import { toast } from "react-toastify"   // 👈 đổi import
-import { getQRCode } from "../api/sharedApi"
+import { handleApi } from "../api/handleApi"
+import { getQRCode } from "../api/qr.api"
+import { toast } from "react-toastify"
 
 export default function TestPaymentQRCard({ linkedBanks }) {
     const [testAmount, setTestAmount] = useState("")
@@ -22,28 +23,23 @@ export default function TestPaymentQRCard({ linkedBanks }) {
     }, [bankLinked])
 
     const handleCreateTestQR = async () => {
-        if (!testAmount) return
-        if (!bankLinked) {
-            toast.error("Please link a bank account first!") // 👈 toastify
-            return
-        }
+        if (!testAmount || !bankLinked) return
 
         const bank = linkedBanks[0]
+        const payload = {
+            fiServiceId: bank.fiServiceId,
+            accountNumber: bank.accountNumber,
+            amount: Number(testAmount),
+            description: "Test QR",
+            referenceNumber: "11"
+        }
+
         try {
-            const payload = {
-                fiServiceId: bank.fiServiceId,
-                accountNumber: bank.accountNumber,
-                amount: Number(testAmount),
-                description: "Test QR",
-                referenceNumber: "11"
-            }
-            const res = await getQRCode(payload)
-            setQrData(res.data)
+            const data = await handleApi(getQRCode(payload)) // 👈 tự xử lý toast theo message backend
+            setQrData(data)
             setShowTestQR(true)
-            toast.success("Test QR created successfully!") // 👈 toastify
         } catch (err) {
             console.error("Failed to create QR:", err)
-            toast.error("Failed to create QR. Check console for details.") // 👈 toastify
         }
     }
 

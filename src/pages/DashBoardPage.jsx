@@ -3,11 +3,17 @@ import { Button } from "../components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
 import { CheckCircle, AlertCircle } from "lucide-react"
 import LiveTransactionFeed from "../components/LiveTransactionFeed"
-import { getGrantToken, getListServices, exchangeToken, checkSession, removeGrant } from "../api/sharedApi"
 import BankSelectModal from "../components/BankSelectModal"
 import Header from "../components/Header"
 import LinkedBankItem from "../components/LinkedBankItem"
 import TestPaymentQRCard from "../components/TestPaymentCard"
+import { toast } from "react-toastify"
+
+// API modules
+import { getGrantToken, exchangeToken, removeGrant } from "../api/token.api"
+import { getListServices } from "../api/service.api"
+import { checkSession } from "../api/session.api"
+import { handleApi } from "../api/handleApi"
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
@@ -17,38 +23,32 @@ export default function DashboardPage() {
 
   // ------------------ Load Services ------------------
   useEffect(() => {
-    const fetch = async () => {
-      try {
-        const res = await getListServices();
-        setServiceList(res.data || []);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    fetch();
-  }, []);
+    handleApi(getListServices()).then((data) => {
+      setServiceList(data || [])
+    })
+  }, [])
 
-  // ------------------ Check Session (Reload Safe) ------------------
+  // ------------------ Check Session ------------------
   const fetchSession = async () => {
     try {
-      const res = await checkSession();
-      setBankLinked((res.data.accounts || []).length > 0);
-      setLinkedBanks(res.data.accounts || []);
-    } catch (err) {
-      console.error("Check session failed:", err);
-      setBankLinked(false);
-      setLinkedBanks([]);
+      const data = await handleApi(checkSession())
+      setBankLinked((data.accounts || []).length > 0)
+      setLinkedBanks(data.accounts || [])
+    } catch {
+      setBankLinked(false)
+      setLinkedBanks([])
     }
-  };
+  }
 
   useEffect(() => {
-    fetchSession();
-  }, []);
+    fetchSession()
+  }, [])
+
 
   // ------------------ CasLink ------------------
   const openCasLink = (token, fiFullName, logo) => {
     if (!token) {
-      alert("Chưa có grantToken, vui lòng thử lại!");
+      toast.error("Chưa có grantToken, vui lòng thử lại!");
       return;
     }
 
@@ -60,16 +60,16 @@ export default function DashboardPage() {
       fiServiceType: "ALL",
       onSuccess: async (publicToken) => {
         try {
-          const res = await exchangeToken({ publicToken, fiFullName, logo });
-          if (res.data.success) {
-            await fetchSession(); // 🔥 gọi lại để sync UI với DB
+          const data = await handleApi(exchangeToken({ publicToken, fiFullName, logo }))
+          if (data.success) {
+            await fetchSession()
           }
         } catch (e) {
-          console.error("Exchange token failed", e);
+          console.error("Exchange token failed", e)
         }
       },
-      onExit: () => { },
-    };
+      onExit: () => {},
+    }
 
     const { open } = BankHub.useBankHubLink(CasLinkConfigs);
     open();
@@ -80,22 +80,20 @@ export default function DashboardPage() {
 
   const handleDeleteBank = async (bank) => {
     try {
-      await removeGrant(bank.fiServiceId, bank.accountNumber);
-      setBankLinked(false);
-      setLinkedBanks(prev => prev.filter(b => !(b.fiServiceId === bank.fiServiceId && b.accountNumber === bank.accountNumber)));
-      alert("Bank account unlinked successfully!");
+      await handleApi(removeGrant(bank.fiServiceId, bank.accountNumber))
+      setLinkedBanks((prev) => prev.filter((b) => !(b.fiServiceId === bank.fiServiceId && b.accountNumber === bank.accountNumber)))
+      setBankLinked((prev) => prev && linkedBanks.length > 1) 
     } catch (err) {
-      console.error("Failed to remove bank:", err);
-      alert("Failed to remove bank. Check console for details.");
+      console.error("Failed to remove bank:", err)
     }
-  };
+  }
 
   const handleSelectServices = async (services) => {
     try {
-      const res = await getGrantToken(services.id);
-      const token = res.data.grantToken;
-      setOpenBankSelect(false);
-      openCasLink(token, services.fiFullName, services.logo);
+      const data = await handleApi(getGrantToken(services.id))
+      const token = data.grantToken
+      setOpenBankSelect(false)
+      openCasLink(token, services.fiFullName, services.logo)
     } catch (err) {
       console.error(err)
     }
