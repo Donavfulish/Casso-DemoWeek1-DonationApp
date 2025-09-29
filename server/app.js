@@ -9,6 +9,7 @@ import qrrouter from "./routes/qrpay.routes.js";
 import webhookrouter from "./routes/webhook.routes.js";
 import sessionrouter from "./routes/session.routes.js";
 import transrouter from "./routes/transaction.routes.js";
+import roomrouter from "./routes/room.routes.js";
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use("/pay", qrrouter)
 app.use("/webhook", webhookrouter)
 app.use("/sessions", sessionrouter)
 app.use("/transaction", transrouter)
+app.use("/room", roomrouter)
 
 app.use((err, req, res, next) => {
   console.error("Error middleware:", err.message);

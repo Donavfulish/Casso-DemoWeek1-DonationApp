@@ -4,8 +4,11 @@ export async function handleApi(promise) {
   try {
     const res = await promise;
     const msg = res.data?.message;
+    const sucess = res.data?.success;
     if (msg) {
-      toast.success(msg);
+      if (sucess)
+        toast.success(msg);
+      else toast.error(msg);
     }
     return res.data;
   } catch (err) {

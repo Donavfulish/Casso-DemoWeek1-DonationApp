@@ -88,6 +88,22 @@ class TokenService {
     }
 
     static async getAccessTokenBySession(sessionId, fiServiceId, accountNumber) {
+
+        if (fiServiceId === "" && accountNumber === "") {
+            const result = await pool.query(
+                `SELECT access_token, bank_linked 
+                 FROM sessions 
+                 WHERE session_id = $1 
+             `,
+                [sessionId]
+            );
+
+            if (result.rowCount === 0) {
+                throw new Error("Không tìm thấy accessToken hợp lệ cho tài khoản này trong session");
+            }
+
+            return decrypt(result.rows[0].access_token);
+        }
         const result = await pool.query(
             `SELECT access_token, bank_linked 
              FROM sessions 

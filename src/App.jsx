@@ -12,7 +12,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/:username" element={<DonationPage />} />
+          <Route path="/:code" element={<DonationPage />} />
           <Route path="/transactions" element={<TransactionsHistoryPage />} />
           <Route path="/balance" element={<AccountBalancePage />} />
         </Routes>

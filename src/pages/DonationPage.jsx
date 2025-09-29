@@ -3,31 +3,52 @@
 import { useState } from "react"
 import { useParams } from "react-router-dom"
 import { Button } from "../components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { Card, CardContent, CardHeader } from "../components/ui/card"
 import { Input } from "../components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar"
 import QRCodeModal from "../components/QRCodeModal"
+import { toast } from "react-toastify"
+import { handleApi } from "../api/handleApi"
+import { getQRCodeForUser } from "../api/qr.api"
 
 export default function DonationPage() {
-  const { username } = useParams()
+  const { code } = useParams()
   const [amount, setAmount] = useState("")
   const [showQRModal, setShowQRModal] = useState(false)
+  const [qrData, setQrData] = useState(null)
 
-  const presetAmounts = ["20000", "50000", "100000"]
+  const presetAmounts = ["10000", "20000", "50000", "100000", "200000", "500000"]
 
   const handlePresetAmount = (presetAmount) => {
     setAmount(presetAmount)
   }
 
-  const handleGenerateQR = () => {
-    if (amount) {
+  const handleGenerateQR = async () => {
+    if (!amount.trim()) {
+      toast.error("Please enter a valid amount!")
+      return
+    }
+    const payload = {
+      code,
+      amount: Number(amount),
+      description: "Test QR",
+      referenceNumber: "11",
+    }
+    try {
+      const data = await handleApi(getQRCodeForUser(payload))
+      console.log(data);
+      setQrData(data)
       setShowQRModal(true)
+    } catch (err) {
+      console.log(err)
+      toast.error("Something went wrong while generating QR")
     }
   }
 
+
   // Mock creator data
   const creatorData = {
-    name: username === "linh-artist" ? "Linh Artist" : username,
+    name: code === "linh-artist" ? "Linh Artist" : code,
     bio: "Digital artist creating beautiful illustrations and designs. Support my creative journey!",
     avatar: "/creator-avatar.png",
   }
@@ -35,21 +56,21 @@ export default function DonationPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <Card className="border-border bg-card">
+        <Card className="border-border bg-card shadow-2xl">
           <CardHeader className="text-center space-y-4">
-            <Avatar className="w-20 h-20 mx-auto">
-              <AvatarImage src={creatorData.avatar || "/placeholder.svg"} alt={creatorData.name} />
-              <AvatarFallback className="text-lg">
-                {creatorData.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <CardTitle className="text-card-foreground text-2xl">{creatorData.name}</CardTitle>
-              <CardDescription className="mt-2 text-center">{creatorData.bio}</CardDescription>
+            <div className="flex justify-center mb-4">
+              <Avatar className="w-24 h-24 border-4 border-primary">
+                <AvatarImage src={creatorData.avatar || "/placeholder.svg"} alt={creatorData.name} />
+                <AvatarFallback className="text-2xl bg-primary text-primary-foreground">
+                  {creatorData.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
+                </AvatarFallback>
+              </Avatar>
             </div>
+            <h1 className="text-2xl font-bold text-card-foreground mb-2">{creatorData.name}</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed px-2">{creatorData.bio}</p>
           </CardHeader>
 
           <CardContent className="space-y-6">
@@ -95,12 +116,15 @@ export default function DonationPage() {
           </CardContent>
         </Card>
 
-        <QRCodeModal
-          isOpen={showQRModal}
-          onClose={() => setShowQRModal(false)}
-          amount={amount}
-          creatorName={creatorData.name}
-        />
+        {showQRModal && qrData && (
+          <QRCodeModal
+            isOpen={showQRModal}
+            onClose={() => setShowQRModal(false)}
+            amount={amount}
+            creatorName={creatorData.name}
+            qrData={qrData}
+          />
+        )}
       </div>
     </div>
   )

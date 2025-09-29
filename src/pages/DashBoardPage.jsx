@@ -7,12 +7,12 @@ import { toast } from "react-toastify"
 import { io } from "socket.io-client";
 import LinkBankSection from "../components/LinkBankSection"
 import ShareCodeSection from "../components/ShareCodeSection"
-
 // API modules
 import { getGrantToken, exchangeToken, removeGrant } from "../api/token.api"
 import { getListServices } from "../api/service.api"
 import { checkSession } from "../api/session.api"
 import { handleApi } from "../api/handleApi"
+import { createRoom } from "../api/room.api"
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
@@ -20,6 +20,8 @@ export default function DashboardPage() {
   const [serviceList, setServiceList] = useState([])
   const [linkedBanks, setLinkedBanks] = useState([]);
   const [removedAccount, setRemovedAccount] = useState(null);
+  const [roomCode, setRoomCode] = useState(null);
+
 
   // ------------------ Socket ------------------
   useEffect(() => {
@@ -58,6 +60,24 @@ export default function DashboardPage() {
       setServiceList(data || [])
     })
   }, [])
+
+  // ------------------ Create Room Code ------------------
+  useEffect(() => {
+    const initRoom = async () => {
+      try {
+        const res = await handleApi(createRoom())
+        console.log(res);
+        if (res.success) {
+          setRoomCode(res.data.donation_code)
+        }
+      } catch (err) {
+        console.error("Failed to create room:", err)
+      }
+    }
+
+    initRoom()
+  }, [])
+
 
   // ------------------ Check Session ------------------
   const fetchSession = async () => {
@@ -154,7 +174,7 @@ export default function DashboardPage() {
 
           {/* Step 4: Live Transaction Feed */}
           <div className="flex flex-col gap-6 w-1/2">
-            <ShareCodeSection/>
+            <ShareCodeSection roomCode={roomCode}/>
             <LiveTransactionFeed linkedBanks={linkedBanks} />
           </div>
         </div>

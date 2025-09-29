@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 
-export default function ShareCodeSection() {
+export default function ShareCodeSection({roomCode}) {
     return (
         <Card className="border-border bg-card">
             <CardHeader>
@@ -19,7 +19,7 @@ export default function ShareCodeSection() {
                     <div className="flex-1">
                         <p className="text-sm text-muted-foreground mb-1">Your donation page code:</p>
                         <code className="text-sm font-mono text-foreground bg-background px-2 py-1 rounded">
-                            qr-donate.app/your-username
+                            {roomCode}
                         </code>
                     </div>
                     <Button

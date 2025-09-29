@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { CheckCircle, Loader2 } from "lucide-react"
 import QRCodeGenerator from "./QRCodeGenerator"
 
-export default function QRCodeModal({ isOpen, onClose, amount, creatorName }) {
+export default function QRCodeModal({ isOpen, onClose, amount, creatorName, qrData }) {
   const [paymentStatus, setPaymentStatus] = useState("waiting") // 'waiting' | 'success'
 
   useEffect(() => {
@@ -33,7 +33,11 @@ export default function QRCodeModal({ isOpen, onClose, amount, creatorName }) {
         </DialogHeader>
 
         <div className="flex flex-col items-center space-y-6 py-4">
-          <QRCodeGenerator amount={amount} creatorName={creatorName} />
+          <img
+            src={qrData.dynamicLink}
+            alt="QR Code"
+            className={`w-60 h-60 transition-opacity duration-300 `}
+          />
 
           <div className="text-center space-y-2">
             <p className="text-sm text-muted-foreground font-medium">Instructions:</p>
