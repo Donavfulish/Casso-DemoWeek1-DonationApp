@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react"
-import { Button } from "../components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
-import { CheckCircle, AlertCircle } from "lucide-react"
 import LiveTransactionFeed from "../components/LiveTransactionFeed"
 import BankSelectModal from "../components/BankSelectModal"
 import Header from "../components/Header"
-import LinkedBankItem from "../components/LinkedBankItem"
 import TestPaymentQRCard from "../components/TestPaymentCard"
 import { toast } from "react-toastify"
 import { io } from "socket.io-client";
+import LinkBankSection from "../components/LinkBankSection"
+import ShareCodeSection from "../components/ShareCodeSection"
 
 // API modules
 import { getGrantToken, exchangeToken, removeGrant } from "../api/token.api"
@@ -136,62 +134,30 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background p-4">
       <Header />
-      <div className="max-w-4xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-foreground mb-2">My Dashboard</h1>
           <p className="text-muted-foreground">Manage your QR-Donate account</p>
         </div>
+        <div className="flex gap-6">
+          <div className="flex flex-col gap-6 w-1/2 ">
+            {/* Step 1: Link Bank Account */}
+            <LinkBankSection
+              bankLinked={bankLinked}
+              linkedBanks={linkedBanks}
+              onDeleteBank={handleDeleteBank}
+              onLinkBank={handleLinkBank}
+            />
+            {/* Step 2 & 3: Test Payment QR */}
+            <TestPaymentQRCard linkedBanks={linkedBanks} />
+          </div>
 
-        <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-          {/* Step 1: Link Bank Account */}
-          <Card className="border-border bg-card">
-            <CardHeader>
-              <CardTitle className="text-card-foreground flex items-center gap-2">
-                Step 1: Link Your Bank Account
-                {bankLinked ? (
-                  <CheckCircle className="h-5 w-5 text-green-500" />
-                ) : (
-                  <AlertCircle className="h-5 w-5 text-yellow-500" />
-                )}
-              </CardTitle>
-              <CardDescription>Connect your bank account to receive donations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm">
-                {linkedBanks.length > 0 ? (
-                  <div className="space-y-2">
-                    {linkedBanks.map((bank, idx) => (
-                      <LinkedBankItem
-                        key={idx}
-                        bank={bank}
-                        onDelete={handleDeleteBank}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-sm font-medium text-yellow-400">Not linked yet</div>
-                )}
-              </div>
-              <Button onClick={handleLinkBank} className="w-full">
-                {bankLinked ? "Link Another Account" : "Link Bank Account"}
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Step 2 & 3: Test Payment QR */}
-          <TestPaymentQRCard linkedBanks={linkedBanks} />
-        </div>
-
-        {/* Step 4: Live Transaction Feed */}
-        <Card className="border-border bg-card">
-          <CardHeader>
-            <CardTitle className="text-card-foreground">Step 4: Live Transaction Feed</CardTitle>
-            <CardDescription>Monitor incoming donations in real-time</CardDescription>
-          </CardHeader>
-          <CardContent>
+          {/* Step 4: Live Transaction Feed */}
+          <div className="flex flex-col gap-6 w-1/2">
+            <ShareCodeSection/>
             <LiveTransactionFeed linkedBanks={linkedBanks} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
       <BankSelectModal
         isOpen={isOpenBankSelect}
