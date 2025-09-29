@@ -156,7 +156,7 @@ export default function DashboardPage() {
             <CardDescription>Monitor incoming donations in real-time</CardDescription>
           </CardHeader>
           <CardContent>
-            <LiveTransactionFeed />
+            <LiveTransactionFeed linkedBanks={linkedBanks} />
           </CardContent>
         </Card>
       </div>

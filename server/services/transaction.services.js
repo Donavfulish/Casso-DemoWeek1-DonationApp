@@ -1,10 +1,8 @@
 import pool from "../config/db.js";
 
 class TransactionService {
-    static async getByIdAndAcount(fiServiceId, accountNumber) {
-        const result = await pool.query(
-            " SELECT * FROM DONATION_HISTORY  WHERE fiserviceid = $1 AND accountnumber = $2"
-            , [fiServiceId, accountNumber]);
+    static async getList() {
+        const result = await pool.query("SELECT * FROM DONATION_HISTORY");
 
         return result.rows;
     }

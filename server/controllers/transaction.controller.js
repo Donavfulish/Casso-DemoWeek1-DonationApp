@@ -25,13 +25,17 @@ export const TransactionController = {
 
   async getDonations(req, res) {
     try {
-      const { fiServiceId, accountNumber } = req.body;
-      const donations = await TransactionService.getDonations(fiServiceId, accountNumber);
+      const donations = await TransactionService.getList();
 
       res.json({
-        success: true,
-        message: "Donations fetched successfully",
-        data: donations
+        donate: donations.map(d => ({
+          amount: d.amount,
+          accountName: d.accountName,
+          description: d.description,
+          time: d.time,
+          fiServiceId: d.fiserviceid,
+          accountNumber: d.accountnumber
+        }))
       });
     } catch (error) {
       console.error("[getDonations] error:", error.message);

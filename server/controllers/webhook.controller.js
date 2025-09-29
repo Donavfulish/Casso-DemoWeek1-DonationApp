@@ -22,14 +22,14 @@ export async function handleWebhook(req, res) {
             accountName: accName
         });
 
-        await TransactionService.createDonation({
-            fiServiceId,
-            accountNumber,
-            amount,
-            description: desc,
-            accountName: accName,
-            time: new Date()
-        })
+        // await TransactionService.createDonation({
+        //     fiServiceId,
+        //     accountNumber,
+        //     amount,
+        //     description: desc,
+        //     accountName: accName,
+        //     time: new Date()
+        // })
 
         return res.json({ message: "Webhook received" });
     } catch (err) {

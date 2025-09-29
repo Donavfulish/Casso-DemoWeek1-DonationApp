@@ -8,6 +8,7 @@ import { toast } from "react-toastify"
 
 export default function TestPaymentQRCard({ linkedBanks }) {
     const [testAmount, setTestAmount] = useState("")
+    const [selectedBank, setSelectedBank] = useState(null)
     const [showTestQR, setShowTestQR] = useState(false)
     const [qrData, setQrData] = useState(null)
 
@@ -15,20 +16,26 @@ export default function TestPaymentQRCard({ linkedBanks }) {
 
 
     useEffect(() => {
+        if (bankLinked && !selectedBank) {
+            setSelectedBank(linkedBanks[0])
+        }
         if (!bankLinked) {
+            setSelectedBank(null)
             setQrData(null)
             setShowTestQR(false)
-            setTestAmount("") // nếu muốn clear luôn input
+            setTestAmount("")
         }
-    }, [bankLinked])
+    }, [bankLinked, linkedBanks, selectedBank])
 
     const handleCreateTestQR = async () => {
-        if (!testAmount || !bankLinked) return
+        if (!testAmount || !selectedBank) {
+            toast.error("Please select a bank and enter amount")
+            return
+        }
 
-        const bank = linkedBanks[0]
         const payload = {
-            fiServiceId: bank.fiServiceId,
-            accountNumber: bank.accountNumber,
+            fiServiceId: selectedBank.fiServiceId,
+            accountNumber: selectedBank.accountNumber,
             amount: Number(testAmount),
             description: "Test QR",
             referenceNumber: "11"
@@ -62,6 +69,27 @@ export default function TestPaymentQRCard({ linkedBanks }) {
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">
+                        Select Bank
+                    </label>
+                    <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        value={selectedBank?.accountNumber || ""}
+                        onChange={(e) => {
+                            const bank = linkedBanks.find(b => b.accountNumber === e.target.value)
+                            setSelectedBank(bank)
+                        }}
+                        disabled={!bankLinked}
+                    >
+                        <option value="" disabled>-- Select a bank --</option>
+                        {linkedBanks?.map((bank) => (
+                            <option key={bank.accountNumber} value={bank.accountNumber}>
+                                {bank.fiFullName} - {bank.accountNumber}
+                            </option>
+                        ))}
+                    </select>
+                </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-foreground">
                         Test Amount

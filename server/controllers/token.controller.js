@@ -17,7 +17,7 @@ export const exchangeAccessToken = async (req, res, next) => {
         const { publicToken, fiFullName, logo } = req.body;
         const result = await TokenService.exchangeAccessToken(publicToken);
         const { accessToken, grantId, requestId } = result;
-        //console.log("1", accessToken, "res ", grantId)
+
         // Lấy account info
         const accountInfo = await TokenService.getAccountInfo(accessToken);
         if (!accountInfo) {

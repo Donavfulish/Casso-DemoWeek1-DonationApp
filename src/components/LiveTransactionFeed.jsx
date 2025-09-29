@@ -1,12 +1,36 @@
 import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { io } from "socket.io-client";
+import { getTransactionList } from "../api/transaction.api";
+import { handleApi } from "../api/handleApi"
+import api from "../api";
 
-export default function LiveTransactionFeed({fiServiceId, accountNumber}) {
+export default function LiveTransactionFeed({ linkedBanks = [] }) {
   const [transactions, setTransactions] = useState([])
   const [latestAlert, setLatestAlert] = useState(null)
   const [isVisible, setIsVisible] = useState(false)
   // ------------------ Socket.IO ------------------
+  // useEffect(() => {
+  //   const fetchTransaction = async () => {
+  //     try {
+  //       const data = await handleApi(getTransactionList());
+  //       const allTransactions = data.donate || []
+  //       console.log("1", allTransactions);
+  //       console.log("2",linkedBanks);
+  //       const filtered = allTransactions.filter(tx =>
+  //         linkedBanks.some(
+  //           bank => bank.fiServiceId === tx.fiServiceId && bank.accountNumber === tx.accountNumber
+  //         )
+  //       )
+
+  //       setTransactions(filtered);
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+  //   };
+  //   fetchTransaction()
+  // }, [linkedBanks])
+
   useEffect(() => {
     const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
       transports: ["websocket"],
@@ -69,7 +93,7 @@ export default function LiveTransactionFeed({fiServiceId, accountNumber}) {
         ) : (
           transactions.map((transaction, index) => (
             <div
-              key={transaction.id}
+              key={index}
               className={`flex items-center justify-between p-3 rounded-lg border border-border bg-card/50 transition-all duration-500 ${index === 0 ? "animate-in fade-in-0 slide-in-from-top-2" : ""
                 }`}
             >
