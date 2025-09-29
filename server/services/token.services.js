@@ -49,6 +49,26 @@ class TokenService {
         }
     }
 
+    static async removeByGrant(grantId) {
+        try {
+            // Xóa và trả về thông tin account đã xóa (nếu có)
+            const result = await pool.query(
+                `DELETE FROM sessions WHERE grant_id = $1 RETURNING fiserviceid, accountnumber`,
+                [grantId]
+            );
+
+            if (result.rows.length === 0) {
+                // GrantId không tồn tại, nhưng không throw lỗi
+                return { success: false, message: "Account not exist", data: null };
+            }
+
+            return { success: true, message: "Session deleted successfully", data: result.rows[0] };
+        } catch (error) {
+            throw new Error(error.message || "Failed to remove grant");
+        }
+    }
+
+
     static async deleteAccessTokenBySessionId(sessionId) {
         try {
             const result = await pool.query(

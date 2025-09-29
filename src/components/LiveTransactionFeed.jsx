@@ -10,34 +10,12 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
   const [latestAlert, setLatestAlert] = useState(null)
   const [isVisible, setIsVisible] = useState(false)
   // ------------------ Socket.IO ------------------
-  // useEffect(() => {
-  //   const fetchTransaction = async () => {
-  //     try {
-  //       const data = await handleApi(getTransactionList());
-  //       const allTransactions = data.donate || []
-  //       console.log("1", allTransactions);
-  //       console.log("2",linkedBanks);
-  //       const filtered = allTransactions.filter(tx =>
-  //         linkedBanks.some(
-  //           bank => bank.fiServiceId === tx.fiServiceId && bank.accountNumber === tx.accountNumber
-  //         )
-  //       )
-
-  //       setTransactions(filtered);
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   };
-  //   fetchTransaction()
-  // }, [linkedBanks])
-
   useEffect(() => {
     const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
       transports: ["websocket"],
     })
 
     socket.on("new_transaction", (data) => {
-      console.log(data);
       const newTransaction = {
         amount: data.amount,
         from: data.accountName,
@@ -49,7 +27,6 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
       setTransactions((prev) => [newTransaction, ...prev.slice(0, 9)])
 
       // Hiển thị alert trong 10s
-      console.log(newTransaction);
       setLatestAlert(newTransaction)
       setIsVisible(true)
 

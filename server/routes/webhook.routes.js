@@ -1,9 +1,9 @@
 //transactions.routes.js
 import express from "express"
-import { handleWebhook } from "../controllers/webhook.controller.js";
+import { handleWebhookTransaction, handleWebhookRemove } from "../controllers/webhook.controller.js";
 
 const router = express.Router();
 
-router.post("/transaction", handleWebhook);
-
+router.post("/transaction", handleWebhookTransaction);
+router.post("/remove", handleWebhookRemove)
 export default router;

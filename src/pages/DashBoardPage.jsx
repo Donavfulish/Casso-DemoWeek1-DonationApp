@@ -8,6 +8,7 @@ import Header from "../components/Header"
 import LinkedBankItem from "../components/LinkedBankItem"
 import TestPaymentQRCard from "../components/TestPaymentCard"
 import { toast } from "react-toastify"
+import { io } from "socket.io-client";
 
 // API modules
 import { getGrantToken, exchangeToken, removeGrant } from "../api/token.api"
@@ -20,6 +21,38 @@ export default function DashboardPage() {
   const [isOpenBankSelect, setOpenBankSelect] = useState(false)
   const [serviceList, setServiceList] = useState([])
   const [linkedBanks, setLinkedBanks] = useState([]);
+  const [removedAccount, setRemovedAccount] = useState(null);
+
+  // ------------------ Socket ------------------
+  useEffect(() => {
+    const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
+      transports: ["websocket"],
+    })
+
+    socket.on("remove_account", (removedAccount) => {
+      setLinkedBanks((prev) =>
+        prev.filter(
+          (b) =>
+            !(
+              b.fiServiceId === removedAccount.fiServiceId &&
+              b.accountNumber === removedAccount.accountNumber
+            )
+        )
+      );
+      setRemovedAccount(removedAccount);
+      console.log(removedAccount);
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+  useEffect(() => {
+    if (removedAccount) {
+      toast.info(`Tài khoản ${removedAccount.accountNumber} đã bị xóa cấp quyền`);
+      setRemovedAccount(null); // reset để tránh toast lặp lại
+    }
+  }, [removedAccount]);
 
   // ------------------ Load Services ------------------
   useEffect(() => {
@@ -68,7 +101,7 @@ export default function DashboardPage() {
           console.error("Exchange token failed", e)
         }
       },
-      onExit: () => {},
+      onExit: () => { },
     }
 
     const { open } = BankHub.useBankHubLink(CasLinkConfigs);
@@ -82,7 +115,7 @@ export default function DashboardPage() {
     try {
       await handleApi(removeGrant(bank.fiServiceId, bank.accountNumber))
       setLinkedBanks((prev) => prev.filter((b) => !(b.fiServiceId === bank.fiServiceId && b.accountNumber === bank.accountNumber)))
-      setBankLinked((prev) => prev && linkedBanks.length > 1) 
+      setBankLinked((prev) => prev && linkedBanks.length > 1)
     } catch (err) {
       console.error("Failed to remove bank:", err)
     }
