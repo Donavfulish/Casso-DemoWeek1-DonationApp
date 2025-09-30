@@ -19,10 +19,10 @@ export const getQRCode = async (req, res, next) => {
         const result = await QRService.getQRCode(qrPayload, accessToken);
 
         const qr = result.qrPay;
-        const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName, qrCode } = qr;
+        const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName, qrCode, virtualAccountNumber: vAN } = qr;
 
         const template = "compact2";
-        const link = `https://img.vietqr.io/image/${bin}-${qrAccNo}-${template}.png?amount=${qrAmount}&addInfo=${qrDesc}&accountName=${accountName}`;
+        const link = `https://img.vietqr.io/image/${bin}-${vAN}-${template}.png?amount=${qrAmount}&addInfo=${qrDesc}&accountName=${accountName}`;
         const dynamicQRBase64 = await QRCode.toDataURL(qrCode, { width: 300 });
 
         console.log(qrCode);
@@ -31,7 +31,7 @@ export const getQRCode = async (req, res, next) => {
             message: "QR code generated successfully",
             qrData: result,
             link: link,
-            dynamicLink: dynamicQRBase64
+            dynamicLink: link
         });
 
     } catch (error) {
@@ -41,7 +41,7 @@ export const getQRCode = async (req, res, next) => {
             success: false,
             message: error.response?.data?.message || error.message || "Failed to generate QR code",
         });
-    }
+    }   
 }
 
 export const getQRCodeForUser = async (req, res, next) => {
@@ -68,10 +68,10 @@ export const getQRCodeForUser = async (req, res, next) => {
         const result = await QRService.getQRCode(qrPayload, accessToken);
 
         const qr = result.qrPay;
-        const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName, qrCode } = qr;
+        const { bin, amount: qrAmount, description: qrDesc, accountNumber: qrAccNo, accountName, qrCode, virtualAccountNumber: vAN } = qr;
 
         const template = "compact2";
-        const link = `https://img.vietqr.io/image/${bin}-${qrAccNo}-${template}.png?amount=${qrAmount}&addInfo=${qrDesc}&accountName=${accountName}`;
+        const link = `https://img.vietqr.io/image/${bin}-${vAN}-${template}.png?amount=${qrAmount}&addInfo=${qrDesc}&accountName=${accountName}`;
         const dynamicQRBase64 = await QRCode.toDataURL(qrCode, { width: 300 });
 
         res.json({
@@ -79,7 +79,7 @@ export const getQRCodeForUser = async (req, res, next) => {
             message: "QR code generated successfully",
             qrData: result,
             link: link,
-            dynamicLink: dynamicQRBase64
+            dynamicLink: link
         });
 
     } catch (error) {
