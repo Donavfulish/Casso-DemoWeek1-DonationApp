@@ -1,7 +1,5 @@
-"use client"
-
-import { useState } from "react"
-import { useParams } from "react-router-dom"
+import { useEffect, useState, useRef } from "react"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card, CardContent, CardHeader } from "../components/ui/card"
 import { Input } from "../components/ui/input"
@@ -10,14 +8,45 @@ import QRCodeModal from "../components/QRCodeModal"
 import { toast } from "react-toastify"
 import { handleApi } from "../api/handleApi"
 import { getQRCodeForUser } from "../api/qr.api"
+import { checkCode } from "../api/room.api"
+
 
 export default function DonationPage() {
   const { code } = useParams()
+  const navigate = useNavigate()
+  const location = useLocation()
   const [amount, setAmount] = useState("")
   const [showQRModal, setShowQRModal] = useState(false)
   const [qrData, setQrData] = useState(null)
-
+  const [valid, setValid] = useState(false)
+  const checkedRef = useRef(false)
   const presetAmounts = ["10000", "20000", "50000", "100000", "200000", "500000"]
+
+  useEffect(() => {
+    if (checkedRef.current) return
+    checkedRef.current = true
+
+    const verifyCode = async () => {
+      try {
+        const res = await handleApi(checkCode(code)) // gọi API backend check code
+        if (res.success) {
+          setValid(true)
+        } else {
+          navigate("/") // redirect về home
+        }
+      } catch {
+        navigate("/")
+      }
+    }
+    if (!location.state) {
+      verifyCode()
+    } else if (location.state.Direct) {
+      setValid(true)
+    } else if (location.state.DirectFromDB) {
+      setValid(true)
+      toast.success("Join room success")
+    }
+  }, [code, navigate])
 
   const handlePresetAmount = (presetAmount) => {
     setAmount(presetAmount)
@@ -36,7 +65,6 @@ export default function DonationPage() {
     }
     try {
       const data = await handleApi(getQRCodeForUser(payload))
-      console.log(data);
       setQrData(data)
       setShowQRModal(true)
     } catch (err) {
@@ -45,7 +73,7 @@ export default function DonationPage() {
     }
   }
 
-
+  if (!valid) return <div>Loading....</div>
   // Mock creator data
   const creatorData = {
     name: code === "linh-artist" ? "Linh Artist" : code,

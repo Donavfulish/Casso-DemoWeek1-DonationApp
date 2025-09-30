@@ -12,7 +12,7 @@ import { getGrantToken, exchangeToken, removeGrant } from "../api/token.api"
 import { getListServices } from "../api/service.api"
 import { checkSession } from "../api/session.api"
 import { handleApi } from "../api/handleApi"
-import { createRoom } from "../api/room.api"
+import { createRoom, getCode } from "../api/room.api"
 
 export default function DashboardPage() {
   const [bankLinked, setBankLinked] = useState(false)
@@ -61,12 +61,11 @@ export default function DashboardPage() {
     })
   }, [])
 
-  // ------------------ Create Room Code ------------------
+  // ------------------ Create Or Get Room Code ------------------
   useEffect(() => {
     const initRoom = async () => {
       try {
         const res = await handleApi(createRoom())
-        console.log(res);
         if (res.success) {
           setRoomCode(res.data.donation_code)
         }
@@ -74,10 +73,20 @@ export default function DashboardPage() {
         console.error("Failed to create room:", err)
       }
     }
-
+    const loadRoom = async () => {
+      try {
+        const res = await handleApi(getCode())
+        if (res.success) {
+          setRoomCode(res.data.donation_code)
+        }
+      } catch (err) {
+        console.error("Failed to create room:", err)
+      }
+    }
+    loadRoom()
     if (bankLinked && !roomCode) {
       initRoom()
-    } 
+    }
   }, [bankLinked, roomCode])
 
 

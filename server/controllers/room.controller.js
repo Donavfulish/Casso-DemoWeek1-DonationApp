@@ -60,3 +60,16 @@ export const checkCode = async (req, res) => {
     });
   }
 }
+
+export const getCodeBySession = async (req, res) => {
+  try {
+    const sessionId = req.sessionID
+    const result = await RoomService.getCodeBySession(sessionId);
+    return res.json(result);
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Internal server error",
+    });
+  }
+}

@@ -18,12 +18,11 @@ export default function HomePage() {
       toast.error("Please enter a code!")
       return
     }
-
     try {
       const res = await handleApi(checkCode(code.trim()))
       if (res.success) {
         setModalOpen(false)
-        navigate(`/${code.trim()}`)
+        navigate(`/${code.trim()}`, {state: {Direct: true}})
       } else {
       }
     } catch (err) {

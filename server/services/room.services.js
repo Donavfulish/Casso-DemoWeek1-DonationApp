@@ -47,6 +47,7 @@ class RoomService {
     }
   }
 
+  // Check room có tồn tại không
   static async checkCode(code) {
     try {
       const result = await pool.query('SELECT * FROM donation_room WHERE donation_code=$1', [code])
@@ -56,6 +57,22 @@ class RoomService {
       return { success: true, message: "Join room success" };
     } catch (error) {
       throw new Error(error.message || "Failed to remove grant");
+    }
+  }
+
+  // Get code room bằng session_id
+  static async getCodeBySession(sessionId) {
+    try {
+      const result = await pool.query(`SELECT donation_code FROM donation_room WHERE session_id = $1`, [sessionId])
+      if (result.rows.length === 0) {
+        return { sucess: false };
+      }
+      return {
+        success: true,
+        data: result.rows[0], // { session_id }
+      };
+    } catch (error) {
+      throw new Error(error.message || "Failed to get code by session id")
     }
   }
 }

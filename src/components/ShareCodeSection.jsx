@@ -32,7 +32,7 @@ export default function ShareCodeSection({roomCode, bankLinked}) {
                             variant="default"
                             className="border-border text-foreground "
                         >
-                            <Link to="/linh-artist">View Sample Page</Link>
+                            <Link to={`/${roomCode}`} state={{DirectFromDB: true}}>View Sample Page</Link>
                         </Button>
                     </div>
                 ) : (
