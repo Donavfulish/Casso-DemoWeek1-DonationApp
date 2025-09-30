@@ -7,7 +7,7 @@ export default function ShareCodeSection({roomCode, bankLinked}) {
         <Card className="border-border bg-card">
             <CardHeader>
                 <CardTitle className="text-card-foreground flex items-center gap-2">
-                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                    <span className="bg-primary text-black rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
                         3
                     </span>
                     Your Donation Page

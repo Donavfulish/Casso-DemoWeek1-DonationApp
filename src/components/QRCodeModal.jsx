@@ -1,22 +1,33 @@
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { CheckCircle, Loader2 } from "lucide-react"
-import QRCodeGenerator from "./QRCodeGenerator"
+import { io } from "socket.io-client"
 
-export default function QRCodeModal({ isOpen, onClose, amount, creatorName, qrData }) {
+export default function QRCodeModal({ isOpen, onClose, amount, creatorName, qrData, referenceNumber }) {
   const [paymentStatus, setPaymentStatus] = useState("waiting") // 'waiting' | 'success'
 
   useEffect(() => {
+    // Khởi tạo socket chỉ 1 lần
+    const socket = io("https://bobette-membranous-supervoluminously.ngrok-free.dev", {
+      transports: ["websocket"],
+    })
     if (isOpen) {
       setPaymentStatus("waiting")
-      // Simulate payment confirmation after 5 seconds
-      const timer = setTimeout(() => {
-        setPaymentStatus("success")
-      }, 5000)
 
-      return () => clearTimeout(timer)
+      // Lắng nghe sự kiện new_transaction
+      socket.on("new_transaction", (tx) => {
+        if (tx.ref === referenceNumber) {
+          setPaymentStatus("success")
+        }
+      })
     }
-  }, [isOpen])
+
+    return () => {
+      if (socket) {
+        socket.off("new_transaction")
+      }
+    }
+  }, [isOpen, referenceNumber])
 
   const handleClose = () => {
     setPaymentStatus("waiting")

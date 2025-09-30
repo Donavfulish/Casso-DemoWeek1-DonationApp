@@ -4,9 +4,11 @@ import TokenService from "../services/token.services.js";
 export async function handleWebhookTransaction(req, res) {
     try {
         const payload = req.body.transaction;
+        console.log(req.body);
         const {
-            fiId: fiServiceId,
+            fiServiceId,
             accountNumber,
+            paymentMeta: {referenceNumber: ref} = {},
             amount,
             counterAccountName
         } = payload;
@@ -19,7 +21,8 @@ export async function handleWebhookTransaction(req, res) {
         io.emit("new_transaction", {
             amount,
             description: desc,
-            accountName: accName
+            accountName: accName,
+            ref: ref
         });
 
         // await TransactionService.createDonation({

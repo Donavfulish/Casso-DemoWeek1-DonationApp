@@ -161,7 +161,7 @@ export default function BankSelectionModal({ isOpen, onClose, services, onSelect
                                             >
                                                 <div className="p-6 space-y-4">
                                                     <div className="flex items-center space-x-4">
-                                                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-muted flex items-center justify-center">
+                                                        <div className="w-12 h-12 rounded-lg overflow-hidden bg-white flex items-center justify-center">
                                                             {bank.logo ? (
                                                                 <img
                                                                     src={bank.logo || "/placeholder.svg"}
