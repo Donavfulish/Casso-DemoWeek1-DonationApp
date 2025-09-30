@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Link } from "react-router-dom"
 import { Button } from "../components/ui/button"
 
-export default function ShareCodeSection({roomCode}) {
+export default function ShareCodeSection({roomCode, bankLinked}) {
     return (
         <Card className="border-border bg-card">
             <CardHeader>
@@ -12,24 +12,34 @@ export default function ShareCodeSection({roomCode}) {
                     </span>
                     Your Donation Page
                 </CardTitle>
-                <CardDescription>Share this link with your supporters</CardDescription>
+                <CardDescription>{bankLinked
+                        ? "Share this link with your supporters"
+                        : "Please link your bank account first"}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
-                    <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">Your donation page code:</p>
-                        <code className="text-sm font-mono text-foreground bg-background px-2 py-1 rounded">
-                            {roomCode}
-                        </code>
+                {bankLinked ? (
+                    <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                        <div className="flex-1">
+                            <p className="text-sm text-muted-foreground mb-1">
+                                Your donation page code:
+                            </p>
+                            <code className="text-sm font-mono text-foreground bg-background px-2 py-1 rounded">
+                                {roomCode}
+                            </code>
+                        </div>
+                        <Button
+                            asChild
+                            variant="default"
+                            className="border-border text-foreground "
+                        >
+                            <Link to="/linh-artist">View Sample Page</Link>
+                        </Button>
                     </div>
-                    <Button
-                        asChild
-                        variant="default"
-                        className="border-border text-foreground "
-                    >
-                        <Link to="/linh-artist">View Sample Page</Link>
-                    </Button>
-                </div>
+                ) : (
+                    <div className="text-muted-foreground text-sm p-4 bg-muted rounded-lg">
+                        You need to link at least one bank account to generate a donation page.
+                    </div>
+                )}
             </CardContent>
         </Card>
     );
