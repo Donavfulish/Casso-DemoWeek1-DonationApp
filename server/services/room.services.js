@@ -75,6 +75,19 @@ class RoomService {
       throw new Error(error.message || "Failed to get code by session id")
     }
   }
+
+  static async deleteBySession(sessionId) {
+    try {
+      // Xóa và trả về thông tin account đã xóa (nếu có)
+      const result = await pool.query(
+        `DELETE FROM donation_room WHERE session_id = $1`,
+        [sessionId]
+      );
+      return { success: true};
+    } catch (error) {
+      throw new Error(error.message || "Failed to remove grant");
+    }
+  }
 }
 
 export default RoomService;

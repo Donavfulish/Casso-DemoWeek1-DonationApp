@@ -1,6 +1,6 @@
 import TokenService from "../services/token.services.js";
 import SessionService from "../services/session.services.js";
-
+import RoomService from "../services/room.services.js";
 
 export const createGrantToken = async (req, res, next) => {
     try {
@@ -37,6 +37,7 @@ export const exchangeAccessToken = async (req, res, next) => {
 
         if (existed) {
             // Nếu đã có → xóa quyền của user này và clean DB
+            await TokenService.removeGrant(existed.grantId, existed.accessToken)
             await TokenService.removeGrant(grantId, accessToken);
             await SessionService.deleteByFiServiceAndAccount(fiServiceId, accountNumber);
 
@@ -83,7 +84,8 @@ export const removeGrant = async (req, res) => {
 
         await TokenService.removeGrant(session.grantId, session.accessToken);
         await SessionService.deleteByFiServiceAndAccount(fiServiceId, accountNumber);
-
+        await RoomService.deleteBySession(req.sessionID);
+        
         return res.json({ message: "Successfully removed grant and session" });
 
     } catch (error) {

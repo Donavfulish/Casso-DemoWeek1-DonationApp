@@ -3,7 +3,6 @@ import pool from "../config/db.js";
 class TransactionService {
     static async getList() {
         const result = await pool.query("SELECT * FROM DONATION_HISTORY");
-
         return result.rows;
     }
 

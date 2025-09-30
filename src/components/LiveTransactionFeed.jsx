@@ -2,10 +2,25 @@ import { useState, useEffect } from "react"
 import { formatDistanceToNow } from "date-fns"
 import { io } from "socket.io-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { getTransactionList } from "../api/transaction.api"
 
-export default function LiveTransactionFeed({ linkedBanks = [] }) {
+export default function LiveTransactionFeed({ linkedBanks = [], bankLinked }) {
   const [transactions, setTransactions] = useState([])
   const [latestAlert, setLatestAlert] = useState(null)
+  // ------------------ Fetch ban đầu ------------------
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const res = await getTransactionList()
+        setTransactions(res.data?.donate || [])
+      } catch (err) {
+        console.error("Failed to fetch transactions", err)
+      }
+    }
+    if (bankLinked) {
+      fetchTransactions()
+    }
+  }, [bankLinked]) 
 
   // ------------------ Socket.IO ------------------
   useEffect(() => {
@@ -16,7 +31,7 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
     socket.on("new_transaction", (data) => {
       const newTransaction = {
         amount: data.amount,
-        from: data.accountName,
+        accountName: data.accountName,
         description: data.description,
         time: new Date()
       }
@@ -51,7 +66,7 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
                      animate-out fade-out-0 slide-out-to-top-4
                      duration-1000"
             >
-              🎉 <span className="font-semibold">{latestAlert.from}</span> vừa donate{" "}
+              🎉 <span className="font-semibold">{latestAlert.accountName}</span> vừa donate{" "}
               <span className="font-bold">
                 {Number.parseInt(latestAlert.amount).toLocaleString()} VND
               </span>
@@ -63,8 +78,8 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
             </div>
           )}
           {/* Danh sách donate */}
-          <div className="space-y-2">
-            {transactions.length === 0 ? (
+          <div className="space-y-2"> {bankLinked ? (
+            transactions.length === 0 ? (
               <p className="text-muted-foreground text-center py-8">No donations yet. Share your donation page to start receiving support!</p>
             ) : (
               transactions.map((transaction, index) => (
@@ -75,7 +90,7 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-foreground">{transaction.from}</span>
+                      <span className="font-medium text-foreground">{transaction.accountName}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">{formatDistanceToNow(new Date(transaction.time), { addSuffix: true })}</p>
                   </div>
@@ -84,7 +99,9 @@ export default function LiveTransactionFeed({ linkedBanks = [] }) {
                   </div>
                 </div>
               ))
-            )}
+            )) : (
+            <p className="text-muted-foreground text-center py-8">Please linked bank first!</p>
+          )}
           </div>
         </div>
       </CardContent>

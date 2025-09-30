@@ -127,10 +127,11 @@ export default function DashboardPage() {
             await fetchSession()
           }
         } catch (e) {
+          await fetchSession();
           console.error("Exchange token failed", e)
         }
       },
-      onExit: () => { },
+      onExit: async () => {},
     }
 
     const { open } = BankHub.useBankHubLink(CasLinkConfigs);
@@ -186,7 +187,7 @@ export default function DashboardPage() {
           {/* Step 4: Live Transaction Feed */}
           <div className="flex flex-col gap-6 w-1/2">
             <ShareCodeSection roomCode={roomCode} bankLinked={bankLinked} />
-            <LiveTransactionFeed linkedBanks={linkedBanks} />
+            <LiveTransactionFeed linkedBanks={linkedBanks} bankLinked={bankLinked} />
           </div>
         </div>
       </div>

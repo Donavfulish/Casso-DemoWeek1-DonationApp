@@ -26,11 +26,10 @@ export const TransactionController = {
   async getDonations(req, res) {
     try {
       const donations = await TransactionService.getList();
-
       res.json({
         donate: donations.map(d => ({
           amount: d.amount,
-          accountName: d.accountName,
+          accountName: d.accountname,
           description: d.description,
           time: d.time,
           fiServiceId: d.fiserviceid,

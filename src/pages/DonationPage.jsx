@@ -38,12 +38,8 @@ export default function DonationPage() {
         navigate("/")
       }
     }
-    if (!location.state) {
-      verifyCode()
-    } else if (location.state.Direct) {
-      setValid(true)
-    } else if (location.state.DirectFromDB) {
-      setValid(true)
+    verifyCode()
+    if (location.state.DirectFromDB) {
       toast.success("Join room success")
     }
   }, [code, navigate])
